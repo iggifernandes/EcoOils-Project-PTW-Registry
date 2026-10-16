@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EcoOils Mentari – PTW Registry</title>
+<style>
+:root{
+  --ink:#1c2a1c; --ink2:#4d5d4d; --mute:#7b887b; --line:#d9ded6; --bg:#f3f5f1; --paper:#ffffff;
+  --green:#4a9d2f; --green-d:#2f6b1c; --green-p:#e8f3e2; --yellow:#f6d94c; --yellow-p:#fff6c9;
+  --red:#c62828; --red-p:#fde8e6; --amber:#b26a00; --amber-p:#fff0d6; --blue:#245a8d; --blue-p:#e4eef7;
+  --radius:6px; --font:"Segoe UI",Roboto,"Noto Sans","Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{--ink:#e7efe5;--ink2:#b5c3b2;--mute:#8a9988;--line:#34413a;--bg:#131a15;--paper:#1b251e;--green-p:#1f3321;--yellow-p:#3b3510;--red-p:#3d1b19;--amber-p:#3a2a0b;--blue-p:#17293a;--green:#6cc04a;--green-d:#8fd672}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--font)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--yellow);outline-offset:1px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px 60px}
+header.top{background:var(--green-d);color:#fff;padding:10px 0;padding-top:max(10px,env(safe-area-inset-top))}
+header.top .wrap{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding-bottom:0}
+.brand{font-weight:700;font-size:18px;letter-spacing:.2px}
+.brand small{display:block;font-weight:400;font-size:12px;opacity:.85}
+.spacer{flex:1}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--green-p);color:var(--green-d);white-space:nowrap}
+header .chip{background:rgba(255,255,255,.18);color:#fff}
+.chip.high,.chip.red{background:var(--red-p);color:var(--red)} .chip.warn,.chip.amber{background:var(--amber-p);color:var(--amber)} .chip.info,.chip.blue{background:var(--blue-p);color:var(--blue)} .chip.yellow{background:var(--yellow-p);color:#6b5a00} .chip.grey{background:var(--line);color:var(--ink2)}
+.btn{border:1px solid var(--green-d);background:var(--green-d);color:#fff;padding:8px 16px;border-radius:var(--radius);cursor:pointer;font-weight:600}
+.btn:hover{filter:brightness(1.08)} .btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--green-d);border-color:var(--line)} header .btn.ghost{color:#fff;border-color:rgba(255,255,255,.4)}
+.btn.red{background:var(--red);border-color:var(--red)} .btn.small{padding:4px 10px;font-size:13px}
+.langsw{display:inline-flex;border:1px solid rgba(255,255,255,.4);border-radius:var(--radius);overflow:hidden}
+.langsw button{background:transparent;border:0;color:#fff;padding:4px 10px;cursor:pointer;font-weight:600}
+.langsw button.on{background:#fff;color:var(--green-d)}
+.testbar{background:var(--yellow);color:#4a3d00;text-align:center;font-weight:700;padding:6px;font-size:13px}
+nav.tabs{display:flex;gap:2px;flex-wrap:wrap;margin:14px 0 0;border-bottom:2px solid var(--line)}
+nav.tabs.sub{margin-top:8px;border-bottom:1px solid var(--line)}
+nav.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;margin-bottom:-2px;padding:9px 14px;cursor:pointer;color:var(--ink2);font-weight:600}
+nav.tabs button.on{color:var(--green-d);border-bottom-color:var(--green)}
+nav.tabs.sub button{font-size:13px;padding:6px 11px;font-weight:500}
+.navlabel{align-self:center;font-size:12px;color:var(--mute);padding:0 8px 0 2px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-top:14px}
+.card h2{margin:0 0 4px;font-size:18px} .card h3{margin:18px 0 8px;font-size:14px;color:var(--green-d);border-bottom:1px solid var(--line);padding-bottom:4px}
+.hint{color:var(--mute);font-size:13px;margin:2px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px 14px}
+.grid .wide{grid-column:1/-1}
+label.f{display:block;font-size:13px;color:var(--ink2);font-weight:600} label.f .req{color:var(--red)}
+input[type=text],input[type=date],input[type=time],input[type=number],input[type=password],select,textarea{width:100%;margin-top:3px;padding:8px 9px;border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);min-height:38px}
+textarea{min-height:70px;resize:vertical}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px}
+.checks label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);border-radius:var(--radius);padding:7px 9px;cursor:pointer;font-size:14px}
+.checks label:has(input:checked){background:var(--green-p);border-color:var(--green)}
+.checks input{width:18px;height:18px;accent-color:var(--green)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.err{background:var(--red-p);border:1px solid var(--red);color:var(--red);border-radius:var(--radius);padding:10px 12px;margin-top:12px}
+.err ul{margin:4px 0 0 18px;padding:0} .okbox{background:var(--green-p);border:1px solid var(--green);border-radius:var(--radius);padding:12px;margin-top:12px}
+.warnbox{background:var(--amber-p);border:1px solid var(--amber);border-radius:var(--radius);padding:10px 12px;margin-top:10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+.kpi{background:var(--paper);border:1px solid var(--line);border-left:5px solid var(--green);border-radius:var(--radius);padding:10px 12px;cursor:pointer;text-align:left}
+.kpi b{font-size:26px;display:block;line-height:1.1} .kpi span{font-size:12.5px;color:var(--ink2)}
+.kpi.red{border-left-color:var(--red)} .kpi.amber{border-left-color:var(--amber)} .kpi.yellow{border-left-color:var(--yellow)} .kpi.grey{border-left-color:var(--mute)}
+.bars{display:grid;gap:5px;margin-top:6px} .bar{display:grid;grid-template-columns:110px 1fr 34px;gap:8px;align-items:center;font-size:13px}
+.bar i{display:block;height:14px;background:var(--green);border-radius:3px;min-width:2px}
+.tablewrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top}
+th{background:var(--green-p);color:var(--green-d);position:sticky;top:0;white-space:nowrap}
+tr.click{cursor:pointer} tr.click:hover td{background:var(--yellow-p)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-top:8px}
+.filters label{font-size:12px;color:var(--ink2);font-weight:600} .filters select,.filters input{margin-top:2px;min-width:130px}
+.drawer{position:fixed;inset:0 0 0 auto;width:min(720px,100%);background:var(--paper);border-left:3px solid var(--yellow);box-shadow:-10px 0 30px rgba(0,0,0,.25);overflow-y:auto;padding:16px;padding-bottom:60px;z-index:20}
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:19}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:3px 12px;font-size:14px} .kv dt{color:var(--mute)} .kv dd{margin:0;word-break:break-word}
+/* the matrix mirrors the paper Rev 001 form: days down the side, Day / Extended / Night across */
+.matrix{border-collapse:separate;border-spacing:0;border:2px solid var(--ink);width:100%}
+.matrix th{background:var(--paper);color:var(--ink);border:1px solid var(--ink);position:static;text-align:center}
+.matrix td{border:1px solid var(--ink);text-align:center;min-width:110px;font-size:13px;height:54px;vertical-align:middle}
+.matrix td.dn{font-weight:700;font-size:18px;width:54px}
+.matrix td.have{background:var(--green-p)} .matrix td.have.bad{background:var(--amber-p)} .matrix td.missing{background:var(--red-p);color:var(--red);font-weight:600} .matrix td.na{background:repeating-linear-gradient(45deg,transparent 0 6px,var(--line) 6px 7px);color:var(--mute)}
+.combo .combobox{position:relative} .combolist{position:absolute;left:0;right:0;top:100%;margin:2px 0 0;padding:4px 0;list-style:none;max-height:250px;overflow:auto;background:var(--paper);border:1px solid var(--green);border-radius:var(--radius);box-shadow:0 8px 20px rgba(0,0,0,.2);z-index:15;font-weight:400;color:var(--ink)} .combolist li{padding:8px 11px;cursor:pointer} .combolist li.on,.combolist li:hover{background:var(--green-p)} .combolist li.other{border-top:1px solid var(--line);color:var(--amber);font-weight:600} [hidden]{display:none!important}
+.checks label.locked{background:var(--yellow-p);border-color:var(--yellow);cursor:default}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:30;padding:14px}
+.modal>div{background:var(--paper);border-radius:var(--radius);padding:18px;max-width:640px;width:100%;max-height:90vh;overflow:auto;border-top:6px solid var(--yellow)}
+.flaglist{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px} .flaglist li{display:flex;gap:6px;align-items:flex-start}
+.login{max-width:420px;margin:12vh auto 0}
+.login .card{border-top:6px solid var(--yellow)}
+.small{font-size:12.5px;color:var(--mute)}
+@media(max-width:640px){.kv{grid-template-columns:1fr}.kv dt{margin-top:6px}.bar{grid-template-columns:70px 1fr 28px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div id="appver" style="position:fixed;right:8px;bottom:6px;font:11px system-ui,sans-serif;color:#6b7280;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:4px;z-index:9999;pointer-events:none">v1.1</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* =====================================================================================
+   EcoOils Mentari – PTW Registry (front end)
+   1) Deploy Code.gs as a Web app, 2) paste its URL below, 3) publish this file + /templates on GitHub Pages.
+   ===================================================================================== */
+const API_URL = 'https://script.google.com/macros/s/AKfycby91km1lX1q0GY_myaYHh1mdvM6wBGp4ROGddwcfAOideoMdUn1UkUApetE3A0NOnyD/exec';
+const TZ = 'Asia/Jakarta';
+const TEMPLATE_ID = 'PTW-REGISTRY-TEMPLATE-v1';
+
+/* ---------- i18n (English / Bahasa Indonesia) ---------- */
+const T = {
+ title:['PTW Registry','Registri PTW'], sub:['EcoOils Mentari Project · Sei Mangkei','Proyek EcoOils Mentari · Sei Mangkei'],
+ code:['Access code','Kode akses'], login:['Log in','Masuk'], logout:['Log out','Keluar'], loggingIn:['Checking…','Memeriksa…'],
+ loginHint:['Use the access code issued to your company PTW Receiver.','Gunakan kode akses yang diberikan kepada PTW Receiver perusahaan Anda.'],
+ notConfigured:['The registry link is not set yet. Paste the Apps Script Web App URL into API_URL at the top of this file.','Tautan registri belum diatur. Tempel URL Web App Apps Script ke API_URL di bagian atas file ini.'],
+ role_admin:['Admin','Admin'], role_entry:['Entry team','Tim entri'], role_contractor:['PTW Receiver','PTW Receiver'],
+ testMode:['TEST MODE – everything entered now is marked as test data and can be purged','MODE UJI COBA – semua data yang dimasukkan ditandai sebagai data uji dan dapat dihapus'],
+ t_ptw:['Day 1 · PTW','Hari 1 · PTW'], t_reval:['Revalidation','Revalidasi'], t_close:['Closure','Penutupan'], t_upload:['Upload Excel','Unggah Excel'], t_correct:['Request correction','Ajukan koreksi'],
+ t_dash:['Overview','Ringkasan'], t_corr:['Corrections','Koreksi'], t_settings:['Settings & log','Pengaturan & log'], enterData:['Enter data:','Input data:'],
+ paperNote:['The paper PTW remains the legal document. Submitted records cannot be edited – use "Request correction".','PTW kertas tetap dokumen resmi. Data yang terkirim tidak dapat diubah – gunakan "Ajukan koreksi".'],
+ review:['Review','Periksa'], confirm:['Confirm and submit','Konfirmasi dan kirim'], back:['Back to edit','Kembali ubah'], cancel:['Cancel','Batal'], close:['Close','Tutup'],
+ sec_details:['Permit details','Detail izin'], sec_wt:['Type of work','Jenis pekerjaan'], sec_doc:['Supporting documents attached','Dokumen pendukung terlampir'], sec_valid:['Validity and Day 1 hours','Masa berlaku dan jam hari 1'], sec_sign:['Signatories','Penandatangan'], sec_rev:['Revalidation block','Blok revalidasi'], sec_close:['Closure (Section 5)','Penutupan (Bagian 5)'],
+ choose:['– choose –','– pilih –'], required:['required','wajib'],
+ reviewTitle:['Check before submitting','Periksa sebelum mengirim'], reviewWarn:['These points will be recorded and shown to HSSE:','Poin berikut akan dicatat dan terlihat oleh HSSE:'], reviewClean:['No warnings. Submitting cannot be undone from your side.','Tidak ada peringatan. Pengiriman tidak dapat dibatalkan dari sisi Anda.'],
+ problems:['Please fix the following – nothing was saved:','Mohon perbaiki hal berikut – tidak ada data yang tersimpan:'], row:['Row','Baris'],
+ recorded:['Recorded','Tercatat'], receipt:['Receipt','Tanda terima'], copy:['Copy receipt','Salin tanda terima'], copied:['Copied','Tersalin'], another:['Enter another','Input lagi'], time:['Time','Waktu'],
+ testNote:['Saved as TEST data.','Disimpan sebagai data UJI.'], flagsHdr:['Recorded with warnings','Tercatat dengan peringatan'],
+ upTitle:['Upload Excel template','Unggah template Excel'], upHint:['Download your company template, fill the white cells, save, then upload it here. Nothing is saved unless every row is valid.','Unduh template perusahaan Anda, isi sel putih, simpan, lalu unggah di sini. Tidak ada yang tersimpan kecuali semua baris valid.'],
+ dlTemplate:['Download template','Unduh template'], pickFile:['Choose filled .xlsx file','Pilih file .xlsx yang sudah diisi'], reading:['Reading file…','Membaca file…'], validating:['Checking with registry…','Memeriksa dengan registri…'],
+ upFound:['Found in file','Ditemukan di file'], upPtw:['PTW (Day 1)','PTW (Hari 1)'], upRev:['Revalidation rows','Baris revalidasi'], upClose:['Closures','Penutupan'], upEmpty:['The file has no filled rows.','File tidak memiliki baris terisi.'],
+ upBadTpl:['This is not the registry template (or it is an old version). Download the current template and copy your rows in.','Ini bukan template registri (atau versi lama). Unduh template terbaru dan salin baris Anda.'],
+ upWrongCo:['This template belongs to {a} but you are logged in as {b}.','Template ini milik {a} tetapi Anda masuk sebagai {b}.'],
+ upTooBig:['Too many rows in one sheet (max {n}).','Terlalu banyak baris dalam satu lembar (maks {n}).'], upReady:['All rows are valid and ready to submit.','Semua baris valid dan siap dikirim.'], upSubmit:['Submit all','Kirim semua'],
+ corrTitle:['Request a correction','Ajukan koreksi'], corrHint:['Describe what is wrong on the registry record. HSSE reviews it; the original stays on file.','Jelaskan bagian yang salah pada catatan registri. HSSE akan meninjau; data asli tetap tersimpan.'],
+ recType:['What do you want to correct?','Apa yang ingin dikoreksi?'], rt_PTW:['PTW (Day 1)','PTW (Hari 1)'], rt_REVAL:['A revalidation row','Satu baris revalidasi'], rt_CLOSE:['Closure','Penutupan'],
+ field:['Field','Kolom'], newValue:['Correct value','Nilai yang benar'], reason:['Reason (min 5 characters)','Alasan (min 5 karakter)'], sendReq:['Send request','Kirim permintaan'], reqSent:['Request sent to HSSE admin. Reference:','Permintaan terkirim ke admin HSSE. Referensi:'],
+ liveNow:['Live now','Aktif sekarang'], awaitReval:['Awaiting today\'s revalidation','Menunggu revalidasi hari ini'], expiredOpen:['Expired, not closed','Kedaluwarsa, belum ditutup'], closedAll:['Closed','Ditutup'], highFlags:['With high-severity flags','Dengan tanda bahaya tinggi'], pendingCorr:['Corrections pending','Koreksi menunggu'],
+ byContractor:['Open permits by contractor','Izin terbuka per kontraktor'], byType:['Open permits by type of work','Izin terbuka per jenis pekerjaan'], simops:['Possible overlaps (same location, live together)','Kemungkinan tumpang tindih (lokasi sama, aktif bersamaan)'],
+ permits:['Permits','Izin'], contractor:['Applicant company','Perusahaan pemohon'], status:['Status','Status'], all:['All','Semua'], search:['Search','Cari'], showTest:['Test data','Data uji'], real:['Real only','Asli saja'], testOnly:['Test only','Uji saja'], withVoid:['Show voided','Tampilkan dibatalkan'],
+ refresh:['Refresh','Muat ulang'], exportCsv:['Export CSV','Ekspor CSV'], noRows:['Nothing matches.','Tidak ada yang cocok.'], loading:['Loading…','Memuat…'],
+ c_ptw:['PTW No','No. PTW'], c_loc:['Location','Lokasi'], c_types:['Work','Pekerjaan'], c_ram:['RAM','RAM'], c_valid:['Valid','Berlaku'], c_day:['Day','Hari'], c_flags:['Flags','Tanda'],
+ st_live:['Live','Aktif'], st_sched:['Scheduled','Terjadwal'], st_expired:['Expired – not closed','Kedaluwarsa – belum ditutup'], st_closedC:['Closed – completed','Ditutup – selesai'], st_closedS:['Closed – suspended','Ditutup – dihentikan'], st_void:['Voided','Dibatalkan'],
+ matrix:['Revalidation (as on form Rev 001)','Revalidasi (seperti formulir Rev 001)'], seg_Day:['Day','Siang'], seg_Extended:['Extended','Perpanjangan'], seg_Night:['Night','Malam'], original:['Original PTW','PTW asli'], missing:['missing','belum ada'], notYet:['–','–'],
+ adminEdit:['Edit a field (logged)','Ubah kolom (dicatat)'], saveEdit:['Save edit','Simpan perubahan'], voidIt:['Void this permit','Batalkan izin ini'], voidReason:['Reason for voiding','Alasan pembatalan'], voided:['Voided','Dibatalkan'], edited:['Saved.','Tersimpan.'],
+ pending:['Pending requests','Permintaan menunggu'], history:['History','Riwayat'], approve:['Approve & apply','Setujui & terapkan'], reject:['Reject','Tolak'], note:['Note (optional)','Catatan (opsional)'], none:['None','Tidak ada'],
+ setTitle:['Settings','Pengaturan'], testToggle:['Test mode (mark all new entries as test data)','Mode uji coba (tandai semua data baru sebagai data uji)'], dayWin:['Day shift window (optional – used for warnings)','Jendela shift siang (opsional – untuk peringatan)'], from:['From','Dari'], to:['To','Sampai'], save:['Save','Simpan'],
+ purgeTitle:['Remove test data','Hapus data uji'], purgeHint:['Deletes every row marked TEST. Real data is never touched. Type PURGE to confirm.','Menghapus semua baris bertanda UJI. Data asli tidak tersentuh. Ketik PURGE untuk konfirmasi.'], purge:['Purge test data','Hapus data uji'], removed:['rows removed','baris dihapus'],
+ logTitle:['Recent activity','Aktivitas terbaru'],
+ e_BAD_CODE:['Access code not recognised.','Kode akses tidak dikenali.'], e_LOCKED:['Too many wrong codes. Try again in 10 minutes.','Terlalu banyak kode salah. Coba lagi dalam 10 menit.'], e_FORBIDDEN:['Not allowed for your access level.','Tidak diizinkan untuk tingkat akses Anda.'],
+ netErr:['No connection to the registry. Check your internet and try again – your entries are still on screen.','Tidak ada koneksi ke registri. Periksa internet dan coba lagi – isian Anda masih ada di layar.'], badResp:['Unexpected reply from the registry. Try again.','Balasan registri tidak terduga. Coba lagi.'],
+ typeSearch:['Type to search…','Ketik untuk mencari…'], useOther:['Use "{x}" (not in list)','Gunakan "{x}" (tidak ada di daftar)'], pickOrType:['Pick from the list or type a new one','Pilih dari daftar atau ketik yang baru'], reqAlways:['Required','Wajib'],
+ autoValidTo:['Valid-to is filled automatically: 7 days from valid-from (Day 1 + 6). You may shorten it, not extend it.','Berlaku-sampai terisi otomatis: 7 hari sejak berlaku-dari (Hari 1 + 6). Boleh dipersingkat, tidak boleh diperpanjang.'], jhaNote:['JHA and Work Method Statement are always ticked – no PTW without them.','JHA dan Pernyataan Metode Kerja selalu tercentang – tidak ada PTW tanpa keduanya.'],
+ listsTitle:['Dropdown lists','Daftar dropdown'], listsHint:['One entry per line. Users can still type a value that is not on the list.','Satu entri per baris. Pengguna tetap dapat mengetik nilai yang tidak ada di daftar.'], listDept:['Departments','Departemen'], listLoc:['Locations','Lokasi'], listsSaved:['Lists saved.','Daftar tersimpan.'],
+ help_ptwNo:['Use the number printed on the paper permit','Gunakan nomor yang tercetak pada izin kertas']
+};
+const t = (k, r) => { let s = (T[k] || [k, k])[S.lang === 'id' ? 1 : 0]; if (r) for (const x in r) s = s.replace('{' + x + '}', r[x]); return s; };
+const lab = c => c[S.lang] || c.en;
+
+/* ---------- state ---------- */
+const S = { lists: { dept: [], location: [] }, lang: 'en', code: '', role: '', contractor: '', schema: null, settings: {}, tab: '', draft: { ptw: {}, reval: {}, close: {}, corr: { recordType: 'PTW' } },
+            data: null, f: { contractor: '', status: '', type: '', q: '', test: 'all', voided: false, kpi: '' }, drawer: null, result: null, upload: null, busy: false };
+try { S.lang = localStorage.getItem('ptw_lang') || ((navigator.language || '').startsWith('id') ? 'id' : 'en'); } catch (e) {}
+
+/* ---------- tiny DOM helper ---------- */
+function h(tag, attrs, ...kids) {
+  const e = document.createElement(tag); let val;
+  for (const k in (attrs || {})) { const v = attrs[k]; if (v == null || v === false) continue;
+    if (k === 'class') e.className = v; else if (k === 'html') e.innerHTML = v; else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'value') val = v; else if (k === 'checked') e.checked = !!v; else e.setAttribute(k, v === true ? '' : v); }
+  for (const c of kids.flat(Infinity)) { if (c == null || c === false) continue; e.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  if (val !== undefined) e.value = val;
+  return e;
+}
+const $root = () => document.getElementById('root');
+function today() { return window.__today || new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+const dms = s => new Date(s + 'T00:00:00Z').getTime();
+const ddiff = (a, b) => Math.round((dms(b) - dms(a)) / 864e5);
+const addD = (s, n) => new Date(dms(s) + n * 864e5).toISOString().slice(0, 10);
+const fmtD = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00Z'); return isNaN(d) ? s : d.toLocaleDateString(S.lang === 'id' ? 'id-ID' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }); };
+const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+/* ---------- API ---------- */
+async function api(action, extra) {
+  if (API_URL.startsWith('PASTE_')) throw new Error(t('notConfigured'));
+  const body = JSON.stringify(Object.assign({ action, code: S.code }, extra || {}));
+  const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 70000);
+  let res; try { res = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body, signal: ctl.signal }); }
+  catch (e) { throw new Error(t('netErr')); } finally { clearTimeout(to); }
+  let j; try { j = await res.json(); } catch (e) { throw new Error(t('badResp')); }
+  if (!j.ok && j.error) { const m = T['e_' + j.error]; throw Object.assign(new Error(m ? t('e_' + j.error) : (j.message || j.error)), { code: j.error }); }
+  return j;
+}
+const errText = e => e[S.lang] || e.en;
+
+/* ---------- login ---------- */
+function renderLogin(msg) {
+  const inp = h('input', { type: 'password', id: 'code', autocomplete: 'off', 'aria-label': t('code') });
+  const go = async () => { const c = inp.value.trim(); if (!c) return; btn.disabled = true; btn.textContent = t('loggingIn'); await doLogin(c, true); };
+  const btn = h('button', { class: 'btn', onclick: go }, t('login'));
+  inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); });
+  $root().replaceChildren(h('div', { class: 'wrap' }, h('div', { class: 'login' },
+    h('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, h('div', { class: 'brand', style: 'color:var(--green-d)' }, 'EcoOils ', t('title'), h('small', { style: 'color:var(--mute)' }, t('sub'))), langSwitch(true)),
+    h('div', { class: 'card' }, h('label', { class: 'f' }, t('code'), inp), h('p', { class: 'hint' }, t('loginHint')),
+      msg ? h('div', { class: 'err' }, msg) : null, h('div', { class: 'row' }, btn)))));
+  inp.focus();
+}
+async function doLogin(code, manual) {
+  S.code = code;
+  try {
+    const r = await api('login');
+    S.role = r.role; S.contractor = r.contractor; S.schema = r.schema; S.lists = r.lists || S.lists; S.settings = r.settings || {};
+    try { sessionStorage.setItem('ptw_code', code); } catch (e) {}
+    S.tab = S.role === 'admin' ? 'dash' : 'ptw'; S.result = null; render();
+    if (S.role === 'admin') loadData();
+  } catch (e) { S.code = ''; try { sessionStorage.removeItem('ptw_code'); } catch (x) {} renderLogin(manual || !e.code ? e.message : ''); }
+}
+function logout() { S.code = ''; S.role = ''; S.data = null; S.drawer = null; S.result = null; try { sessionStorage.removeItem('ptw_code'); } catch (e) {} renderLogin(); }
+function langSwitch(onLogin) {
+  return h('div', { class: 'langsw', role: 'group', 'aria-label': 'Language' }, ['en', 'id'].map(l => h('button', { class: S.lang === l ? 'on' : '', onclick: () => { S.lang = l; try { localStorage.setItem('ptw_lang', l); } catch (e) {} document.documentElement.lang = l; S.code ? render() : renderLogin(); } }, l === 'en' ? 'EN' : 'ID')));
+}
+
+/* ---------- shell ---------- */
+const ENTRY_TABS = ['ptw', 'reval', 'close', 'upload', 'correct'];
+function render() {
+  const sh = S.settings.testMode;
+  const mk = (tabs, cls) => h('nav', { class: 'tabs ' + (cls || '') }, tabs.map(k => h('button', { class: S.tab === k ? 'on' : '', onclick: () => { S.tab = k; S.result = null; S.upload = null; render(); if (k === 'dash' || k === 'corr' || k === 'settings') loadData(); } }, t('t_' + k))));
+  const adminTabs = ['dash', 'corr', 'settings'];
+  const body = { ptw: () => viewForm('ptw'), reval: () => viewForm('reval'), close: () => viewForm('close'), upload: viewUpload, correct: viewCorrect, dash: viewDash, corr: viewCorr, settings: viewSettings }[S.tab];
+  $root().replaceChildren(...[
+    h('header', { class: 'top' }, h('div', { class: 'wrap' }, h('div', { class: 'brand' }, 'EcoOils ', t('title'), h('small', null, t('sub'))), h('span', { class: 'spacer' }),
+      h('span', { class: 'chip' }, t('role_' + S.role) + (S.contractor ? ' · ' + S.contractor : '')), langSwitch(), h('button', { class: 'btn ghost small', onclick: logout }, t('logout')))),
+    sh ? h('div', { class: 'testbar' }, t('testMode')) : null,
+    h('div', { class: 'wrap' },
+      S.role === 'admin' ? [mk(adminTabs), h('div', { style: 'display:flex;align-items:center' }, h('span', { class: 'navlabel' }, t('enterData')), mk(ENTRY_TABS, 'sub'))] : mk(ENTRY_TABS),
+      typeof body === 'function' ? body() : body),
+    S.drawer ? drawerView() : null].filter(Boolean));   // replaceChildren(null) would print the word "null"
+}
+
+/* ---------- fields ---------- */
+function opts(col) {
+  if (col.k === 'contractor') return S.schema.contractors; if (col.k === 'ram') return S.schema.ram; if (col.k === 'segment') return S.schema.segments;
+  if (col.k === 'closeOutcome') return S.schema.outcomes; if (col.t === 'day') return ['2', '3', '4', '5', '6', '7']; return [];
+}
+function combo(col, store, key, items) {
+  const inp = h('input', { type: 'text', value: store[key] || '', autocomplete: 'off', role: 'combobox', 'aria-autocomplete': 'list', 'aria-expanded': 'false', placeholder: t('typeSearch'), 'aria-label': lab(col) });
+  const ul = h('ul', { class: 'combolist', role: 'listbox', hidden: true });
+  let act = -1, shown = [];
+  const hide = () => { ul.hidden = true; inp.setAttribute('aria-expanded', 'false'); act = -1; };
+  const pick = v => { store[key] = v; inp.value = v; hide(); };
+  const paint = () => [...ul.children].forEach((li, i) => li.classList.toggle('on', i === act));
+  const draw = () => {
+    const q = norm(inp.value); shown = items.filter(x => !q || norm(x).includes(q)).slice(0, 80);
+    const lis = shown.map(x => h('li', { role: 'option', onmousedown: e => { e.preventDefault(); pick(x); } }, x));
+    const typed = inp.value.trim();
+    if (typed && !items.some(x => norm(x) === norm(typed))) { shown.push(typed); lis.push(h('li', { class: 'other', role: 'option', onmousedown: e => { e.preventDefault(); pick(typed); } }, t('useOther', { x: typed }))); }
+    ul.replaceChildren(...lis); ul.hidden = !lis.length; inp.setAttribute('aria-expanded', String(!ul.hidden)); paint();
+  };
+  inp.addEventListener('input', () => { store[key] = inp.value.trim(); act = -1; draw(); });
+  inp.addEventListener('focus', draw); inp.addEventListener('blur', hide);
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (ul.hidden) draw(); act = Math.min(shown.length - 1, act + 1); paint(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); act = Math.max(0, act - 1); paint(); }
+    else if (e.key === 'Enter' && act >= 0 && !ul.hidden) { e.preventDefault(); pick(shown[act]); }
+    else if (e.key === 'Escape') hide();
+  });
+  return h('div', { class: 'combo' }, h('div', { class: 'combobox' }, inp, ul), h('span', { class: 'small', style: 'display:block;font-weight:400' }, t('pickOrType')));
+}
+function ctl(col, store, key, onchange, attrs) {
+  const set = v => { store[key] = v; if (onchange) onchange(); };
+  if (col.t === 'combo') return combo(col, store, key, S.lists[col.list] || []);
+  if (col.t === 'list' || col.t === 'day') {
+    const o = opts(col);
+    return h('select', { value: store[key] || '', onchange: e => set(e.target.value), 'aria-label': lab(col) }, h('option', { value: '' }, t('choose')),
+      o.map(x => h('option', { value: x }, col.k === 'segment' ? x + ' – ' + t('seg_' + x) : col.t === 'day' ? (S.lang === 'id' ? 'Hari ' : 'Day ') + x : x)));
+  }
+  if (col.t === 'bool') {
+    const lock = !!col.lock; if (lock) store[key] = 'Y';
+    return h('label', { class: lock ? 'locked' : '' }, h('input', { type: 'checkbox', checked: lock || store[key] === 'Y', disabled: lock, onchange: e => set(e.target.checked ? 'Y' : '') }), lab(col), lock ? h('span', { class: 'chip yellow', style: 'margin-left:auto' }, t('reqAlways')) : null);
+  }
+  const type = { date: 'date', time: 'time', num: 'number' }[col.t] || 'text';
+  return h('input', { type, value: store[key] || '', inputmode: col.t === 'num' ? 'numeric' : null, min: col.t === 'num' ? 0 : (attrs && attrs.min), max: attrs && attrs.max, oninput: e => { store[key] = e.target.value; }, onchange: e => set(e.target.value), 'aria-label': lab(col) });
+}
+function field(col, store, key, cls, attrs, onchange) {
+  return h('label', { class: 'f ' + (cls || '') }, lab(col), col.r ? h('span', { class: 'req' }, ' *') : null, ctl(col, store, key || col.k, onchange, attrs),
+    col.k === 'ptwNo' ? h('span', { class: 'small', style: 'display:block;font-weight:400' }, t('help_ptwNo')) : null);
+}
+function checks(cols, store) { return h('div', { class: 'checks' }, cols.map(c => ctl(c, store, c.k))); }
+const col = (set, k) => S.schema[set].find(c => c.k === k);
+
+/* ---------- submit forms ---------- */
+function viewForm(type) {
+  if (S.result && S.result.type === type) return resultCard();
+  const d = S.draft[type], cols = S.schema[type === 'ptw' ? 'ptw' : type === 'reval' ? 'reval' : 'close'];
+  const needCo = S.role !== 'contractor';
+  const F = (keys, cls) => keys.map(k => col(type === 'ptw' ? 'ptw' : type === 'reval' ? 'reval' : 'close', k)).filter(c => c && (c.k !== 'contractor' || needCo)).map(c => field(c, d, c.k, cls));
+  const onFrom = () => {   // valid-from drives Day 1 date and the automatic 7-day end date
+    const f = d.validFrom; if (f) { d.issueDate = f; const max = addD(f, 6); if (!d.validTo || d.validTo === d._autoTo || d.validTo > max || d.validTo < f) d.validTo = max; d._autoTo = max; }
+    const y = window.scrollY; render(); window.scrollTo(0, y);
+  };
+  let secs;
+  if (type === 'ptw') secs = [
+    h('h3', null, t('sec_details')), h('div', { class: 'grid' }, F(['ptwNo', 'contractor', 'applicant', 'dept', 'location', 'rfmWo', 'ram']), F(['workDesc'], 'wide')),
+    h('h3', null, t('sec_wt')), checks(cols.filter(c => c.k.startsWith('wt_')), d), h('div', { class: 'grid', style: 'margin-top:8px' }, F(['wtOtherText'])),
+    h('h3', null, t('sec_doc')), h('p', { class: 'hint' }, t('jhaNote')), checks(cols.filter(c => c.k.startsWith('doc_')), d),
+    h('h3', null, t('sec_valid')), h('p', { class: 'hint' }, t('autoValidTo')), h('div', { class: 'grid' }, field(col('ptw', 'validFrom'), d, 'validFrom', '', null, onFrom), field(col('ptw', 'validTo'), d, 'validTo', '', { min: d.validFrom || null, max: d.validFrom ? addD(d.validFrom, 6) : null }), F(['day1Start', 'day1End', 'day1ExtEnd', 'day1ExtApprover', 'workParty'])),
+    h('h3', null, t('sec_sign') + ' (Section 4)'), h('div', { class: 'grid' }, F(['jcName', 'aoName', 'paName']))];
+  else if (type === 'reval') secs = [h('h3', null, t('sec_rev')), h('div', { class: 'grid' }, F(['ptwNo', 'contractor', 'day', 'segment', 'date', 'timeFrom', 'timeTo'])), h('h3', null, t('sec_sign')), h('div', { class: 'grid' }, F(['jc', 'pa', 'ao', 'hsse']))];
+  else secs = [h('h3', null, t('sec_close')), h('div', { class: 'grid' }, F(['ptwNo', 'contractor', 'closeDate', 'closeTime', 'closeOutcome', 'closeJc', 'closeAo']))];
+  return h('div', { class: 'card' }, h('h2', null, t('t_' + type)), h('p', { class: 'hint' }, t('paperNote')), secs,
+    S.errors && S.errors.type === type ? errBox(S.errors.list) : null,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => review(type), disabled: S.busy }, t('review'))));
+}
+function errBox(list) {
+  return h('div', { class: 'err', role: 'alert' }, t('problems'), h('ul', null, list.slice(0, 80).map(e => h('li', null, (e.row ? t('row') + ' ' + e.row + (e.sheet ? ' (' + e.sheet + ')' : '') + ': ' : '') + errText(e)))));
+}
+function batchFrom(type) {
+  const row = Object.assign({}, S.draft[type]); if (S.role === 'contractor') row.contractor = S.contractor;
+  if (type === 'ptw') { row.doc_jha = 'Y'; row.doc_wms = 'Y'; if (!row.issueDate) row.issueDate = row.validFrom; }
+  return type === 'ptw' ? { ptw: [row] } : type === 'reval' ? { reval: [row] } : { close: [row] };
+}
+async function review(type) {
+  S.errors = null; S.busy = true;
+  try {
+    const r = await api('submit', { batch: batchFrom(type), dryRun: true });
+    if (!r.ok) { S.errors = { type, list: r.errors }; S.busy = false; render(); window.scrollTo(0, document.body.scrollHeight); return; }
+    S.busy = false; render(); modal(reviewBody(r.preview, () => doSubmit(type, batchFrom(type)), type));
+  } catch (e) { S.busy = false; S.errors = { type, list: [{ en: e.message, id: e.message }] }; render(); }
+}
+function flagLi(code) { const f = flagInfo(code); return h('li', null, h('span', { class: 'chip ' + f.sev }, f.sev === 'high' ? '!' : f.sev === 'warn' ? '▲' : 'i'), h('span', null, f.txt)); }
+function reviewBody(preview, onOk) {
+  const fl = preview.flatMap(p => p.flags.map(f => ({ f, ref: p.ref })));
+  return [h('h2', null, t('reviewTitle')), fl.length ? h('div', { class: 'warnbox' }, t('reviewWarn'), h('ul', { class: 'flaglist' }, fl.map(x => h('li', null, h('span', { class: 'chip ' + flagInfo(x.f).sev }, flagInfo(x.f).sev === 'high' ? '!' : '▲'), h('span', null, (preview.length > 1 ? x.ref + ' – ' : '') + flagInfo(x.f).txt))))) : h('div', { class: 'okbox' }, t('reviewClean')),
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => { closeModal(); onOk(); } }, t('confirm')), h('button', { class: 'btn ghost', onclick: closeModal }, t('back')))];
+}
+function modal(kids) { closeModal(); const m = h('div', { class: 'modal', id: 'modal', role: 'dialog', 'aria-modal': 'true' }, h('div', null, kids)); document.body.append(m); const b = m.querySelector('button'); if (b) b.focus(); }
+function closeModal() { const m = document.getElementById('modal'); if (m) m.remove(); }
+async function doSubmit(type, batch) {
+  S.busy = true;
+  try {
+    const r = await api('submit', { batch });
+    S.busy = false;
+    if (!r.ok) { S.errors = { type, list: r.errors }; if (type === 'upload') S.upload = Object.assign(S.upload || {}, { errors: r.errors, ready: false }); render(); return; }
+    S.result = { type, r }; S.errors = null; if (['ptw', 'reval', 'close'].includes(type)) { const keep = S.draft[type].contractor; S.draft[type] = keep ? { contractor: keep } : {}; }
+    if (S.settings.testMode !== undefined && r.testMode) S.settings.testMode = true;
+    render();
+  } catch (e) { S.busy = false; S.errors = { type, list: [{ en: e.message, id: e.message }] }; if (type === 'upload') S.upload = Object.assign(S.upload || {}, { errors: S.errors.list, ready: false }); render(); }
+}
+function resultCard() {
+  const r = S.result.r, type = S.result.type;
+  const txt = 'EcoOils PTW Registry – ' + r.receipt + ' – ' + r.at + ' – PTW ' + r.counts.ptw + ' / Reval ' + r.counts.reval + ' / Closure ' + r.counts.close;
+  const fl = r.preview.flatMap(p => p.flags.map(f => ({ f, ref: p.ref })));
+  return h('div', { class: 'card' }, h('h2', null, '✔ ' + t('recorded')),
+    h('div', { class: 'okbox' }, h('div', null, t('receipt') + ': ', h('b', null, r.receipt)), h('div', { class: 'small' }, t('time') + ': ' + r.at + ' · PTW ' + r.counts.ptw + ' · ' + t('t_reval') + ' ' + r.counts.reval + ' · ' + t('t_close') + ' ' + r.counts.close), r.testMode ? h('div', { class: 'small' }, t('testNote')) : null),
+    fl.length ? h('div', { class: 'warnbox' }, t('flagsHdr'), h('ul', { class: 'flaglist' }, fl.map(x => h('li', null, h('span', { class: 'chip ' + flagInfo(x.f).sev }, '▲'), h('span', null, (r.preview.length > 1 ? x.ref + ' – ' : '') + flagInfo(x.f).txt))))) : null,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => { S.result = null; S.upload = null; render(); } }, t('another')),
+      h('button', { class: 'btn ghost', onclick: e => { (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => { e.target.textContent = t('copied'); }).catch(() => { e.target.textContent = txt; }); } }, t('copy'))));
+}
+function flagInfo(code) {
+  const [base, param] = code.split(':'); const f = S.schema.flags[base] || { en: base, id: base, sev: 'warn' };
+  let txt = f[S.lang] || f.en;
+  if (base === 'DOC_MISSING') { const d = S.schema.docs.find(x => x[0] === param); txt = txt.replace('{x}', d ? (S.lang === 'id' ? d[2] : d[1]) : param); } else if (param) txt += ' (' + param + ')';
+  return { txt, sev: f.sev, base };
+}
+
+/* ---------- Excel upload ---------- */
+function viewUpload() {
+  const u = S.upload; const co = S.role === 'contractor' ? S.contractor : 'ENTRY';
+  if (S.result && S.result.type === 'upload') return resultCard();
+  const fi = h('input', { type: 'file', accept: '.xlsx', 'aria-label': t('pickFile'), onchange: e => { const f = e.target.files[0]; if (f) f.arrayBuffer().then(handleBuffer); } });
+  return h('div', { class: 'card' }, h('h2', null, t('upTitle')), h('p', { class: 'hint' }, t('upHint')),
+    h('div', { class: 'row' }, h('a', { class: 'btn ghost', href: 'templates/PTW_Registry_Template_' + co + '.xlsx', download: '' }, '⬇ ' + t('dlTemplate') + ' (' + co + ')'), h('label', { class: 'f' }, t('pickFile'), fi)),
+    u && u.busy ? h('p', { class: 'hint' }, u.busy) : null,
+    u && u.errors ? errBox(u.errors) : null,
+    u && u.ready ? h('div', null, h('div', { class: 'okbox' }, t('upReady'), h('div', { class: 'small' }, t('upFound') + ': ' + t('upPtw') + ' ' + u.batch.ptw.length + ' · ' + t('upRev') + ' ' + u.batch.reval.length + ' · ' + t('upClose') + ' ' + u.batch.close.length)),
+      u.preview.some(p => p.flags.length) ? h('div', { class: 'warnbox' }, t('reviewWarn'), h('ul', { class: 'flaglist' }, u.preview.filter(p => p.flags.length).flatMap(p => p.flags.map(f => h('li', null, h('span', { class: 'chip ' + flagInfo(f).sev }, '▲'), h('span', null, p.ref + ' – ' + flagInfo(f).txt)))))) : null,
+      h('div', { class: 'row' }, h('button', { class: 'btn', disabled: S.busy, onclick: () => doSubmit('upload', u.batch) }, t('upSubmit')))) : null);
+}
+const iso = d => d.toISOString().slice(0, 10);
+function cellNorm(v, type) {
+  if (v === undefined || v === null) return '';
+  if (typeof v === 'string') { v = v.trim(); if (v === '') return ''; }
+  if (type === 'date') {
+    if (typeof v === 'number') return iso(new Date(Date.UTC(1899, 11, 30) + Math.round(v) * 864e5));
+    if (v instanceof Date) return iso(v);
+    let m = /^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{4})$/.exec(v); if (m) return m[3] + '-' + m[2].padStart(2, '0') + '-' + m[1].padStart(2, '0');
+    m = /^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})/.exec(v); if (m) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0'); return String(v);
+  }
+  if (type === 'time') {
+    if (typeof v === 'number') { const mins = Math.round((v % 1) * 1440) % 1440; return String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0'); }
+    const m = /^(\d{1,2})[:.](\d{2})(:\d{2})?$/.exec(String(v)); if (m) return m[1].padStart(2, '0') + ':' + m[2]; return String(v);
+  }
+  if (typeof v === 'number') return Number.isInteger(v) ? String(v) : String(v);
+  return String(v);
+}
+function readSheet(wb, name, cols) {
+  const ws = wb.Sheets[name]; if (!ws) return null;
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' });
+  const keys = (rows[0] || []).map(String); const types = {}; cols.forEach(c => types[c.k] = c.t);
+  const out = [];
+  for (let r = 4; r < rows.length; r++) {
+    const o = { _row: r + 1 }; let any = false;
+    keys.forEach((k, j) => { if (!types[k]) return; const v = cellNorm(rows[r][j], types[k]); o[k] = v; if (v !== '' && !['contractor', 'doc_jha', 'doc_wms'].includes(k)) any = true; });
+    if (any) out.push(o);
+  }
+  return out;
+}
+async function handleBuffer(buf) {
+  S.upload = { busy: t('reading') }; S.result = null; render();
+  try {
+    const wb = XLSX.read(new Uint8Array(buf), { type: 'array' });
+    const id = wb.Sheets['Lists'] && wb.Sheets['Lists']['A1'] ? String(wb.Sheets['Lists']['A1'].v) : '';
+    const [tid, tco] = id.split('|');
+    const bad = m => { S.upload = { errors: [{ en: m, id: m }] }; render(); };
+    if (tid !== TEMPLATE_ID) return bad(t('upBadTpl'));
+    const mine = S.role === 'contractor' ? S.contractor : 'ENTRY';
+    if (S.role === 'contractor' && tco !== mine) return bad(t('upWrongCo', { a: tco, b: mine }));
+    if (S.role !== 'contractor' && tco !== 'ENTRY') {/* admin/entry may upload any company's template; rows carry their own contractor */}
+    const batch = { ptw: readSheet(wb, 'PTW', S.schema.ptw) || [], reval: readSheet(wb, 'Revalidation', S.schema.reval) || [], close: readSheet(wb, 'Closure', S.schema.close) || [] };
+    if (S.role !== 'contractor' && tco !== 'ENTRY') ['ptw', 'reval', 'close'].forEach(k => batch[k].forEach(r => { if (!r.contractor) r.contractor = tco; }));
+    for (const k of ['ptw', 'reval', 'close']) if (batch[k].length > S.schema.maxRows) return bad(t('upTooBig', { n: S.schema.maxRows }));
+    if (!batch.ptw.length && !batch.reval.length && !batch.close.length) return bad(t('upEmpty'));
+    S.upload = { busy: t('validating'), batch }; render();
+    const r = await api('submit', { batch, dryRun: true });
+    S.upload = r.ok ? { ready: true, batch, preview: r.preview } : { errors: r.errors }; render();
+  } catch (e) { S.upload = { errors: [{ en: e.message, id: e.message }] }; render(); }
+}
+
+/* ---------- correction (contractor/entry: request · admin: direct edit) ---------- */
+function corrForm(store, onDone, direct, rerender) {
+  const type = store.recordType || 'PTW';
+  const set = { PTW: 'ptw', REVAL: 'reval', CLOSE: 'close' }[type];
+  const cols = S.schema[set]; const fields = S.schema.editable[type].map(k => cols.find(c => c.k === k)).filter(Boolean);
+  const fcol = fields.find(c => c.k === store.field);
+  const rr = rerender || (() => render());
+  const coCol = col('ptw', 'contractor');
+  const err = store._err ? h('div', { class: 'err', role: 'alert' }, store._err) : null;
+  return h('div', null,
+    h('div', { class: 'grid' },
+      h('label', { class: 'f' }, t('recType'), h('select', { value: type, onchange: e => { store.recordType = e.target.value; store.field = ''; store.newValue = ''; rr(); } }, ['PTW', 'REVAL', 'CLOSE'].map(x => h('option', { value: x }, t('rt_' + x))))),
+      field(col('ptw', 'ptwNo'), store, 'ptwNo'), S.role !== 'contractor' && !store._lockCo ? field(coCol, store, 'contractor') : null,
+      type === 'REVAL' ? [field(col('reval', 'day'), store, 'day'), field(col('reval', 'segment'), store, 'segment')] : null,
+      h('label', { class: 'f' }, t('field'), h('select', { value: store.field || '', onchange: e => { store.field = e.target.value; store.newValue = ''; rr(); } }, h('option', { value: '' }, t('choose')), fields.map(c => h('option', { value: c.k }, lab(c))))),
+      fcol ? h('label', { class: 'f' }, t('newValue'), ctl(fcol, store, 'newValue')) : null),
+    h('label', { class: 'f', style: 'margin-top:10px' }, t('reason'), h('textarea', { value: store.reason || '', oninput: e => { store.reason = e.target.value; } })), err,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: async () => {
+      store._err = ''; const p = { recordType: type, ptwNo: store.ptwNo, contractor: S.role === 'contractor' ? S.contractor : store.contractor, day: store.day, segment: store.segment, field: store.field, newValue: store.newValue, reason: store.reason };
+      try { const r = await api(direct ? 'directEdit' : 'requestCorrection', p); onDone(r); } catch (e) { store._err = e.message; rr(); }
+    } }, direct ? t('saveEdit') : t('sendReq'))));
+}
+function viewCorrect() {
+  const st = S.draft.corr;
+  if (st._done) return h('div', { class: 'card' }, h('h2', null, '✔ ' + t('recorded')), h('div', { class: 'okbox' }, t('reqSent') + ' ', h('b', null, st._done)), h('div', { class: 'row' }, h('button', { class: 'btn', onclick: () => { S.draft.corr = { recordType: 'PTW' }; render(); } }, t('another'))));
+  return h('div', { class: 'card' }, h('h2', null, t('corrTitle')), h('p', { class: 'hint' }, t('corrHint')), corrForm(st, r => { st._done = r.result.id; render(); }, false));
+}
+
+/* ---------- admin: data & derivation ---------- */
+async function loadData() {
+  if (S.role !== 'admin') return; S.loading = true;
+  try { const r = await api('list'); S.data = r; S.settings.testMode = r.settings.testMode === 'Y'; S.loading = false; S.loadErr = ''; }
+  catch (e) { S.loading = false; S.loadErr = e.message; }
+  render();
+}
+function derive() {
+  const d = S.data, td = today(); const revBy = {}, out = [];
+  d.reval.filter(r => r.voided !== 'Y').forEach(r => (revBy[r.contractor + '|' + r.ptwNo] = revBy[r.contractor + '|' + r.ptwNo] || []).push(r));
+  d.ptw.forEach(p => {
+    const revs = revBy[p.contractor + '|' + p.ptwNo] || []; const flags = (p.flags ? p.flags.split(';') : []).concat(p.closeFlags ? p.closeFlags.split(';') : []);
+    let status = 'live', dayNo = 0;
+    if (p.voided === 'Y') status = 'void'; else if (p.closeDate) status = p.closeOutcome === 'Suspended' ? 'closedS' : 'closedC';
+    else if (td > p.validTo) status = 'expired'; else if (td < p.validFrom) status = 'sched';
+    if (p.issueDate) dayNo = Math.min(7, Math.max(0, ddiff(p.issueDate, td) + 1));
+    let upto = 0;   // highest day number that must already have a revalidation
+    if (status === 'live') upto = dayNo - 1; else if (p.closeDate && p.issueDate) upto = Math.min(7, ddiff(p.issueDate, p.closeDate) + 1); else if (status === 'expired' && p.issueDate) upto = Math.min(7, ddiff(p.issueDate, p.validTo) + 1);
+    const have = new Set(revs.map(r => +r.day)); const gaps = []; for (let k = 2; k <= upto; k++) if (!have.has(k)) gaps.push(k);
+    if (p.voided !== 'Y') {
+      if (gaps.length) flags.push('REVAL_GAP:D' + gaps.join(',D'));
+      if (status === 'expired') flags.push('EXPIRED_OPEN');
+      if (status === 'live' && dayNo >= 2 && !revs.some(r => r.date === td)) flags.push('NO_REVAL_TODAY');
+    }
+    out.push({ p, revs, status, dayNo, flags: flags.filter(Boolean), sims: [] });
+  });
+  const liveL = out.filter(x => x.status === 'live' && x.p.location);
+  liveL.forEach(a => liveL.forEach(b => { if (a !== b && norm(a.p.location) === norm(b.p.location) && a.p.validFrom <= b.p.validTo && b.p.validFrom <= a.p.validTo) { a.sims.push(b); } }));
+  out.forEach(x => { if (x.sims.length) x.flags.push('SIMOPS:' + x.sims.map(s => s.p.contractor + ' ' + s.p.ptwNo).join(', ')); x.score = Math.max(0, ...x.flags.map(f => ({ high: 3, warn: 2, info: 1 }[flagInfo(f).sev] || 0))); });
+  return out;
+}
+const typesOf = p => S.schema.workTypes.filter(w => p['wt_' + w[0]] === 'Y').map(w => w);
+const rankSt = { expired: 0, live: 1, sched: 2, closedC: 3, closedS: 3, void: 4 };
+function filtered(all) {
+  const f = S.f, q = norm(f.q);
+  return all.filter(x => {
+    if (x.status === 'void' && !f.voided) return false;
+    if (f.contractor && x.p.contractor !== f.contractor) return false;
+    if (f.status && x.status !== f.status) return false;
+    if (f.type && x.p['wt_' + f.type] !== 'Y') return false;
+    if (f.test === 'real' && x.p.isTest === 'Y') return false; if (f.test === 'test' && x.p.isTest !== 'Y') return false;
+    if (f.kpi === 'await' && !x.flags.includes('NO_REVAL_TODAY')) return false;
+    if (f.kpi === 'high' && x.score < 3) return false;
+    if (f.kpi === 'closed' && x.status !== 'closedC' && x.status !== 'closedS') return false;
+    if (q && !norm([x.p.ptwNo, x.p.location, x.p.workDesc, x.p.applicant, x.p.jcName, x.p.aoName, x.p.rfmWo].join(' ')).includes(q)) return false;
+    return true;
+  }).sort((a, b) => (rankSt[a.status] - rankSt[b.status]) || (b.score - a.score) || String(b.p.issueDate).localeCompare(a.p.issueDate));
+}
+function stChip(s) { const c = { live: '', sched: 'blue', expired: 'red', closedC: 'grey', closedS: 'amber', void: 'grey' }[s]; return h('span', { class: 'chip ' + c }, t('st_' + (s === 'sched' ? 'sched' : s))); }
+function csv(rows) { return '\ufeff' + rows.map(r => r.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n'); }
+function download(name, text) { const a = h('a', { href: URL.createObjectURL(new Blob([text], { type: 'text/csv;charset=utf-8' })), download: name }); document.body.append(a); a.click(); a.remove(); }
+
+/* ---------- admin: overview ---------- */
+function viewDash() {
+  if (S.loadErr) return h('div', { class: 'err' }, S.loadErr, ' ', h('button', { class: 'btn small', onclick: loadData }, t('refresh')));
+  if (!S.data) return h('p', { class: 'hint' }, t('loading'));
+  const all = derive(), shown = filtered(all);
+  const open = all.filter(x => x.status === 'live' || x.status === 'expired' || x.status === 'sched');
+  const cnt = fn => all.filter(x => x.status !== 'void' && fn(x)).length;
+  const pend = S.data.corrections.filter(c => c.status === 'Pending').length;
+  const kpi = (n, label, cls, on) => h('button', { class: 'kpi ' + cls, onclick: on }, h('b', null, n), h('span', null, label));
+  const reset = (o) => { S.f = Object.assign({ contractor: '', status: '', type: '', q: '', test: S.f.test, voided: false, kpi: '' }, o); render(); };
+  const bars = (items) => { const mx = Math.max(1, ...items.map(i => i[1])); return h('div', { class: 'bars' }, items.map(i => h('div', { class: 'bar' }, h('span', null, i[0]), h('i', { style: 'width:' + Math.round(i[1] / mx * 100) + '%' }), h('b', null, i[1])))); };
+  const pairs = []; all.forEach(x => x.sims.forEach(y => { if (x.p.contractor + x.p.ptwNo < y.p.contractor + y.p.ptwNo) pairs.push([x, y]); }));
+  const sel = (key, label, options) => h('label', null, label, h('select', { value: S.f[key], onchange: e => { S.f[key] = e.target.value; S.f.kpi = ''; render(); } }, options));
+  return h('div', null,
+    h('div', { class: 'kpis' },
+      kpi(cnt(x => x.status === 'live'), t('liveNow'), '', () => reset({ status: 'live' })),
+      kpi(cnt(x => x.flags.includes('NO_REVAL_TODAY')), t('awaitReval'), 'yellow', () => reset({ status: 'live', kpi: 'await' })),
+      kpi(cnt(x => x.status === 'expired'), t('expiredOpen'), 'red', () => reset({ status: 'expired' })),
+      kpi(cnt(x => x.status === 'closedC' || x.status === 'closedS'), t('closedAll'), 'grey', () => reset({ kpi: 'closed' })),
+      kpi(cnt(x => x.score >= 3), t('highFlags'), 'amber', () => reset({ kpi: 'high' })),
+      kpi(pend, t('pendingCorr'), pend ? 'amber' : 'grey', () => { S.tab = 'corr'; render(); })),
+    h('div', { class: 'grid', style: 'margin-top:14px' },
+      h('div', { class: 'card', style: 'margin:0' }, h('h3', { style: 'margin-top:0' }, t('byContractor')), bars(S.schema.contractors.map(c => [c, open.filter(x => x.p.contractor === c).length]))),
+      h('div', { class: 'card', style: 'margin:0' }, h('h3', { style: 'margin-top:0' }, t('byType')), bars(S.schema.workTypes.map(w => [S.lang === 'id' ? w[2] : w[1], open.filter(x => x.p['wt_' + w[0]] === 'Y').length]).filter(i => i[1] > 0).slice(0, 8)))),
+    pairs.length ? h('div', { class: 'warnbox', style: 'margin-top:14px' }, h('b', null, t('simops')), h('ul', { class: 'flaglist' }, pairs.map(([x, y]) => h('li', null, h('span', { class: 'chip warn' }, '▲'), h('span', null, x.p.contractor + ' ' + x.p.ptwNo + '  ↔  ' + y.p.contractor + ' ' + y.p.ptwNo + ' @ ' + x.p.location))))) : null,
+    h('div', { class: 'card' }, h('h2', null, t('permits') + ' (' + shown.length + ')'),
+      h('div', { class: 'filters' },
+        sel('contractor', t('contractor'), [h('option', { value: '' }, t('all')), S.schema.contractors.map(c => h('option', { value: c }, c))]),
+        sel('status', t('status'), [h('option', { value: '' }, t('all')), ['live', 'sched', 'expired', 'closedC', 'closedS'].map(s => h('option', { value: s }, t('st_' + s)))]),
+        sel('type', t('c_types'), [h('option', { value: '' }, t('all')), S.schema.workTypes.map(w => h('option', { value: w[0] }, S.lang === 'id' ? w[2] : w[1]))]),
+        sel('test', t('showTest'), [h('option', { value: 'all' }, t('all')), h('option', { value: 'real' }, t('real')), h('option', { value: 'test' }, t('testOnly'))]),
+        h('label', null, t('search'), h('input', { type: 'text', value: S.f.q, oninput: e => { S.f.q = e.target.value; S.f.kpi = ''; clearTimeout(S._qt); S._qt = setTimeout(render, 250); } })),
+        h('label', { style: 'display:flex;gap:5px;align-items:center' }, h('input', { type: 'checkbox', style: 'width:auto;min-height:0', checked: S.f.voided, onchange: e => { S.f.voided = e.target.checked; render(); } }), t('withVoid')),
+        h('button', { class: 'btn ghost small', onclick: loadData }, '↻ ' + t('refresh')),
+        h('button', { class: 'btn ghost small', onclick: () => download('ptw-registry-' + today() + '.csv', csv([['PTW No', 'Applicant company', 'Status', 'Day', 'Location', 'Issue date', 'Valid from', 'Valid to', 'RAM', 'Work types', 'Description', 'Job Coordinator', 'Area Owner', 'Permit Authoriser', 'Closed', 'Outcome', 'Flags', 'Test', 'Submitted']].concat(shown.map(x => [x.p.ptwNo, x.p.contractor, x.status, x.dayNo, x.p.location, x.p.issueDate, x.p.validFrom, x.p.validTo, x.p.ram, typesOf(x.p).map(w => w[1]).join('; '), x.p.workDesc, x.p.jcName, x.p.aoName, x.p.paName, x.p.closeDate, x.p.closeOutcome, x.flags.map(f => flagInfo(f).txt).join('; '), x.p.isTest, x.p.submittedAt])))) }, '⬇ ' + t('exportCsv'))),
+      shown.length ? h('div', { class: 'tablewrap' }, h('table', null, h('thead', null, h('tr', null, [t('c_ptw'), t('contractor'), t('c_loc'), t('c_types'), t('c_ram'), t('c_valid'), t('c_day'), t('status'), t('c_flags')].map(x => h('th', null, x)))),
+        h('tbody', null, shown.slice(0, 400).map(x => h('tr', { class: 'click', tabindex: 0, onclick: () => { S.drawer = { key: x.p.contractor + '|' + x.p.ptwNo, edit: { recordType: 'PTW', _lockCo: true } }; render(); }, onkeydown: e => { if (e.key === 'Enter') e.target.click(); } },
+          h('td', null, h('b', null, x.p.ptwNo), x.p.isTest === 'Y' ? h('span', { class: 'chip yellow', style: 'margin-left:4px' }, 'TEST') : null), h('td', null, x.p.contractor), h('td', null, x.p.location),
+          h('td', null, typesOf(x.p).slice(0, 3).map(w => (S.lang === 'id' ? w[2] : w[1]).replace('*', '')).join(', ')), h('td', null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[x.p.ram] || 'grey') }, x.p.ram)),
+          h('td', null, fmtD(x.p.validFrom) + ' → ' + fmtD(x.p.validTo)), h('td', null, x.status === 'live' ? 'D' + x.dayNo : ''), h('td', null, stChip(x.status)),
+          h('td', null, x.flags.length ? h('span', { class: 'chip ' + ['', 'info', 'warn', 'high'][x.score] }, x.flags.length) : '')))))) : h('p', { class: 'hint' }, t('noRows'))));
+}
+function drawerView() {
+  const all = derive(); const x = all.find(a => a.p.contractor + '|' + a.p.ptwNo === S.drawer.key); if (!x) { S.drawer = null; return null; }
+  const p = x.p, td = today();
+  const kv = (k, v) => v ? [h('dt', null, k), h('dd', null, v)] : null;
+  const seg = (day, sg) => {
+    const r = x.revs.find(r => +r.day === day && r.segment === sg);
+    if (r) return h('td', { class: 'have' + (r.flags ? ' bad' : '') }, sg === 'Night' && !r.timeFrom ? '✔' : r.timeFrom + '–' + r.timeTo, h('div', { class: 'small' }, fmtD(r.date)), r.flags ? h('div', { class: 'small' }, '▲ ' + r.flags.split(';').map(f => flagInfo(f).txt).join(' · ')) : null);
+    const lastDay = x.status === 'live' ? x.dayNo - 1 : (p.closeDate && p.issueDate) ? ddiff(p.issueDate, p.closeDate) + 1 : (x.status === 'expired' && p.issueDate) ? ddiff(p.issueDate, p.validTo) + 1 : 0;
+    const expected = sg === 'Day' && day <= lastDay && !x.revs.some(r => +r.day === day);
+    return expected ? h('td', { class: 'missing' }, t('missing')) : h('td', { class: 'na' }, '');
+  };
+  const rows = [h('tr', null, h('td', { class: 'dn' }, 1), h('td', { class: 'have' }, p.day1Start && p.day1End ? p.day1Start + '–' + p.day1End : t('original'), h('div', { class: 'small' }, fmtD(p.issueDate))), h('td', { class: p.day1ExtEnd ? 'have' : 'na' }, p.day1ExtEnd ? '→ ' + p.day1ExtEnd : ''), h('td', { class: 'na' }, ''))];
+  for (let d = 2; d <= 7; d++) rows.push(h('tr', null, h('td', { class: 'dn' }, d), seg(d, 'Day'), seg(d, 'Extended'), seg(d, 'Night')));
+  const fl = x.flags;
+  const ed = S.drawer.edit;
+  const voidBox = S.drawer.voidOpen ? h('div', { class: 'warnbox' }, h('label', { class: 'f' }, t('voidReason'), h('textarea', { oninput: e => { S.drawer.voidReason = e.target.value; } })),
+    h('div', { class: 'row' }, h('button', { class: 'btn red', onclick: async () => { try { await api('void', { recordType: 'PTW', contractor: p.contractor, ptwNo: p.ptwNo, reason: S.drawer.voidReason || '' }); S.drawer = null; await loadData(); } catch (e) { S.drawer.voidErr = e.message; render(); } } }, t('voidIt')))) : null;
+  ed.contractor = p.contractor; ed.ptwNo = p.ptwNo;
+  return h('div', null, h('div', { class: 'scrim', onclick: () => { S.drawer = null; render(); } }),
+    h('aside', { class: 'drawer', role: 'dialog', 'aria-modal': 'true' },
+      h('div', { class: 'row', style: 'margin-top:0;justify-content:space-between' }, h('h2', { style: 'margin:0' }, p.contractor + ' · PTW ' + p.ptwNo), h('button', { class: 'btn ghost small', onclick: () => { S.drawer = null; render(); } }, '✕ ' + t('close'))),
+      h('div', { class: 'row', style: 'margin-top:6px' }, stChip(x.status), x.dayNo && (x.status === 'live' || x.status === 'expired') ? h('span', { class: 'chip' }, (S.lang === 'id' ? 'Hari ' : 'Day ') + x.dayNo + ' / 7') : null, p.isTest === 'Y' ? h('span', { class: 'chip yellow' }, 'TEST') : null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[p.ram] || 'grey') }, 'RAM ' + p.ram)),
+      fl.length ? h('ul', { class: 'flaglist', style: 'margin-top:10px' }, fl.map(flagLi)) : null,
+      h('h3', null, t('sec_details')),
+      h('dl', { class: 'kv' }, kv(t('c_loc'), p.location), kv(lab(col('ptw', 'workDesc')), p.workDesc), kv(lab(col('ptw', 'applicant')), p.applicant), kv(lab(col('ptw', 'dept')), p.dept), kv('RFM / WO', p.rfmWo),
+        kv(t('c_types'), typesOf(p).map(w => (S.lang === 'id' ? w[2] : w[1]).replace('*', '')).join(', ') + (p.wtOtherText ? ' (' + p.wtOtherText + ')' : '')),
+        kv(t('sec_doc'), S.schema.docs.filter(d => p['doc_' + d[0]] === 'Y').map(d => S.lang === 'id' ? d[2] : d[1]).join(', ')),
+        kv(t('c_valid'), fmtD(p.validFrom) + ' → ' + fmtD(p.validTo)), kv(lab(col('ptw', 'jcName')), p.jcName), kv(lab(col('ptw', 'aoName')), p.aoName), kv(lab(col('ptw', 'paName')), p.paName), kv(lab(col('ptw', 'workParty')), p.workParty),
+        kv(t('t_close'), p.closeDate ? fmtD(p.closeDate) + ' ' + p.closeTime + ' · ' + p.closeOutcome + ' · ' + p.closeJc + ' / ' + p.closeAo : ''), kv(t('time'), p.submittedAt + ' · ' + p.submittedBy)),
+      h('h3', null, t('matrix')),
+      h('table', { class: 'matrix' }, h('thead', null, h('tr', null, h('th', null, t('c_day')), ['Day', 'Extended', 'Night'].map(s => h('th', null, t('seg_' + s))))), h('tbody', null, rows)),
+      h('h3', null, t('adminEdit')), corrForm(ed, async () => { ed.field = ''; ed.newValue = ''; ed.reason = ''; ed._err = ''; await loadData(); }, true, () => render()),
+      h('div', { class: 'row' }, p.voided === 'Y' ? h('span', { class: 'chip grey' }, t('voided')) : h('button', { class: 'btn ghost small', onclick: () => { S.drawer.voidOpen = !S.drawer.voidOpen; render(); } }, t('voidIt'))), voidBox, S.drawer.voidErr ? h('div', { class: 'err' }, S.drawer.voidErr) : null));
+}
+
+/* ---------- admin: corrections ---------- */
+function viewCorr() {
+  if (S.loadErr) return h('div', { class: 'err' }, S.loadErr); if (!S.data) return h('p', { class: 'hint' }, t('loading'));
+  const pend = S.data.corrections.filter(c => c.status === 'Pending'), hist = S.data.corrections.filter(c => c.status !== 'Pending');
+  const desc = c => c.contractor + ' · PTW ' + c.ptwNo + (c.recordType === 'REVAL' ? ' · D' + c.day + ' ' + c.segment : c.recordType === 'CLOSE' ? ' · ' + t('rt_CLOSE') : '');
+  const fieldLabel = c => { const set = { PTW: 'ptw', REVAL: 'reval', CLOSE: 'close' }[c.recordType]; const cl = S.schema[set].find(x => x.k === c.field); return cl ? lab(cl) : c.field; };
+  const act = async (c, decision, note) => { try { await api('resolveCorrection', { id: c.id, decision, note }); await loadData(); } catch (e) { S.loadErr = e.message; render(); } };
+  return h('div', null, h('div', { class: 'card' }, h('h2', null, t('pending') + ' (' + pend.length + ')'),
+    pend.length ? pend.map(c => { const note = h('input', { type: 'text', placeholder: t('note') });
+      return h('div', { class: 'warnbox', style: 'background:var(--paper)' }, h('b', null, desc(c)), h('div', null, fieldLabel(c) + ': ', h('s', null, c.oldValue || '∅'), ' → ', h('b', null, c.newValue || '∅')), h('div', { class: 'small' }, c.reason + ' · ' + c.requestedAt + ' · ' + c.requestedBy), note,
+        h('div', { class: 'row', style: 'margin-top:8px' }, h('button', { class: 'btn small', onclick: () => act(c, 'approve', note.value) }, t('approve')), h('button', { class: 'btn ghost small', onclick: () => act(c, 'reject', note.value) }, t('reject')))); }) : h('p', { class: 'hint' }, t('none'))),
+    h('div', { class: 'card' }, h('h2', null, t('history')), hist.length ? h('div', { class: 'tablewrap' }, h('table', null, h('tbody', null, hist.slice(0, 100).map(c => h('tr', null, h('td', null, c.resolvedAt), h('td', null, desc(c)), h('td', null, fieldLabel(c) + ': ' + (c.oldValue || '∅') + ' → ' + (c.newValue || '∅')), h('td', null, h('span', { class: 'chip ' + (c.status === 'Approved' ? '' : 'grey') }, c.status)), h('td', { class: 'small' }, c.resolvedNote)))))) : h('p', { class: 'hint' }, t('none'))));
+}
+
+/* ---------- admin: settings & log ---------- */
+function viewSettings() {
+  if (S.loadErr) return h('div', { class: 'err' }, S.loadErr); if (!S.data) return h('p', { class: 'hint' }, t('loading'));
+  const s = S.data.settings; const f = S._set = S._set || Object.assign({}, s);
+  const conf = h('input', { type: 'text', placeholder: 'PURGE', style: 'max-width:160px' });
+  const L = S._lists = S._lists || { dept: S.lists.dept.join('\n'), location: S.lists.location.join('\n') };
+  const listsCard = h('div', { class: 'card' }, h('h2', null, t('listsTitle')), h('p', { class: 'hint' }, t('listsHint')),
+    h('div', { class: 'grid' }, ['dept', 'location'].map(k => h('label', { class: 'f' }, t(k === 'dept' ? 'listDept' : 'listLoc'), h('textarea', { style: 'min-height:240px', value: L[k], oninput: e => { L[k] = e.target.value; } })))),
+    S._listMsg ? h('div', { class: 'okbox' }, S._listMsg) : null,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: async () => { try { const r = await api('saveLists', { lists: { dept: L.dept.split('\n'), location: L.location.split('\n') } }); S.lists = r.lists; S._lists = null; S._listMsg = t('listsSaved'); render(); } catch (e) { S._listMsg = e.message; render(); } } }, t('save'))));
+  return h('div', null, listsCard, h('div', { class: 'card' }, h('h2', null, t('setTitle')),
+    h('div', { class: 'checks' }, h('label', null, h('input', { type: 'checkbox', checked: f.testMode === 'Y', onchange: e => { f.testMode = e.target.checked ? 'Y' : ''; } }), t('testToggle'))),
+    h('h3', null, t('dayWin')), h('div', { class: 'grid' }, h('label', { class: 'f' }, t('from'), h('input', { type: 'time', value: f.dayStart || '', onchange: e => { f.dayStart = e.target.value; } })), h('label', { class: 'f' }, t('to'), h('input', { type: 'time', value: f.dayEnd || '', onchange: e => { f.dayEnd = e.target.value; } }))),
+    S._setMsg ? h('div', { class: 'okbox' }, S._setMsg) : null,
+    h('div', { class: 'row' }, h('button', { class: 'btn', onclick: async () => { try { await api('saveSettings', { settings: { testMode: f.testMode, dayStart: f.dayStart, dayEnd: f.dayEnd } }); S._set = null; S._setMsg = t('edited'); await loadData(); } catch (e) { S._setMsg = e.message; render(); } } }, t('save')))),
+    h('div', { class: 'card' }, h('h2', null, t('purgeTitle')), h('p', { class: 'hint' }, t('purgeHint')), h('div', { class: 'row' }, conf, h('button', { class: 'btn red', onclick: async () => { try { const r = await api('purgeTest', { confirm: conf.value }); S._setMsg = r.result.removed + ' ' + t('removed'); await loadData(); } catch (e) { S._setMsg = e.message; render(); } } }, t('purge')))),
+    h('div', { class: 'card' }, h('h2', null, t('logTitle')), h('div', { class: 'tablewrap' }, h('table', null, h('tbody', null, S.data.log.slice(0, 120).map(l => h('tr', null, h('td', null, l.time), h('td', null, l.role + (l.contractor ? ' ' + l.contractor : '')), h('td', null, l.action), h('td', { class: 'small' }, l.detail))))))));
+}
+
+/* ---------- boot ---------- */
+window.PTWApp = { S, handleBuffer, render, doLogin, cellNorm };
+document.documentElement.lang = S.lang;
+(function boot() {
+  let c = ''; try { c = sessionStorage.getItem('ptw_code') || ''; } catch (e) {}
+  if (API_URL.startsWith('PASTE_')) { renderLogin(t('notConfigured')); return; }
+  if (c) doLogin(c, false); else renderLogin();
+})();
+</script>
+</body>
+</html>

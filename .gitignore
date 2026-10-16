@@ -1,0 +1,5 @@
+.DS_Store
+~$*
+*.tmp
+# never commit access codes
+codes*.txt
