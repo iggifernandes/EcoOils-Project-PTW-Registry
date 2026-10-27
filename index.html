@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
 <title>EcoOils Mentari – PTW Registry</title>
 <style>
 :root{
@@ -87,11 +88,26 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--yellow-p)}
 .small{font-size:12.5px;color:var(--mute)}
 @media(max-width:640px){.kv{grid-template-columns:1fr}.kv dt{margin-top:6px}.bar{grid-template-columns:70px 1fr 28px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* v1.2 – minimal Shell-style look, Jost, version above language toggle */
+:root{--font:"Jost","Segoe UI",Roboto,"Noto Sans",Arial,sans-serif;--shell-red:#dd1d21;--shell-yellow:#fbce07;--grey:#6b6b6b}
+.wrap{max-width:min(1600px,100%)}
+header.top{background:var(--paper);color:var(--ink);border-bottom:4px solid var(--shell-yellow)}
+.brand{font-weight:300;text-transform:uppercase;letter-spacing:.22em;color:var(--grey);font-size:18px}
+.brand small{letter-spacing:.12em;font-size:11px;opacity:1}
+header .chip{background:var(--bg);color:var(--ink2);border:1px solid var(--line)}
+header .btn.ghost{color:var(--ink2);border-color:var(--line)}
+.btn{background:var(--shell-red);border-color:var(--shell-red)} .btn.ghost{background:transparent;color:var(--shell-red);border-color:var(--line)}
+nav.tabs button.on{color:var(--shell-red);border-bottom-color:var(--shell-red)}
+.langcol{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.ver{font-size:11px;letter-spacing:.08em;color:var(--grey)}
+.langsw{border-color:var(--line)} .langsw button{color:var(--ink2)} .langsw button.on{background:var(--shell-yellow);color:#1c1c1c}
+.login .brand{color:var(--grey)}
+@media(min-width:1800px){html,body{font-size:16px}}
 </style>
 </head>
 <body>
 <div id="root"></div>
-<div id="appver" style="position:fixed;right:8px;bottom:6px;font:11px system-ui,sans-serif;color:#6b7280;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:4px;z-index:9999;pointer-events:none">v1.1</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* =====================================================================================
@@ -102,7 +118,8 @@ const API_URL = 'https://script.google.com/macros/s/AKfycby91km1lX1q0GY_myaYHh1m
 const TZ = 'Asia/Jakarta';
 const TEMPLATE_ID = 'PTW-REGISTRY-TEMPLATE-v1';
 
-/* ---------- i18n (English / Bahasa Indonesia) ---------- */
+const APP_VERSION = '1.2';
+/* ---------- i18n (English / Bahasa Indonesia / Bahasa Melayu) ---------- */
 const T = {
  title:['PTW Registry','Registri PTW'], sub:['EcoOils Mentari Project · Sei Mangkei','Proyek EcoOils Mentari · Sei Mangkei'],
  code:['Access code','Kode akses'], login:['Log in','Masuk'], logout:['Log out','Keluar'], loggingIn:['Checking…','Memeriksa…'],
@@ -146,15 +163,18 @@ const T = {
  typeSearch:['Type to search…','Ketik untuk mencari…'], useOther:['Use "{x}" (not in list)','Gunakan "{x}" (tidak ada di daftar)'], pickOrType:['Pick from the list or type a new one','Pilih dari daftar atau ketik yang baru'], reqAlways:['Required','Wajib'],
  autoValidTo:['Valid-to is filled automatically: 7 days from valid-from (Day 1 + 6). You may shorten it, not extend it.','Berlaku-sampai terisi otomatis: 7 hari sejak berlaku-dari (Hari 1 + 6). Boleh dipersingkat, tidak boleh diperpanjang.'], jhaNote:['JHA and Work Method Statement are always ticked – no PTW without them.','JHA dan Pernyataan Metode Kerja selalu tercentang – tidak ada PTW tanpa keduanya.'],
  listsTitle:['Dropdown lists','Daftar dropdown'], listsHint:['One entry per line. Users can still type a value that is not on the list.','Satu entri per baris. Pengguna tetap dapat mengetik nilai yang tidak ada di daftar.'], listDept:['Departments','Departemen'], listLoc:['Locations','Lokasi'], listsSaved:['Lists saved.','Daftar tersimpan.'],
+ forgot:['Forgot access code?','Lupa kode akses?'], forgotSent:['If the owner email is set, the access codes were sent to that email.','Jika email pemilik sudah diatur, kode akses telah dikirim ke email tersebut.'],
  help_ptwNo:['Use the number printed on the paper permit','Gunakan nomor yang tercetak pada izin kertas']
 };
-const t = (k, r) => { let s = (T[k] || [k, k])[S.lang === 'id' ? 1 : 0]; if (r) for (const x in r) s = s.replace('{' + x + '}', r[x]); return s; };
-const lab = c => c[S.lang] || c.en;
+const T_MS = {"title": "Daftar PTW", "sub": "Projek EcoOils Mentari · Sei Mangkei", "code": "Kod akses", "login": "Log masuk", "logout": "Log keluar", "loggingIn": "Menyemak…", "loginHint": "Gunakan kod akses yang diberikan kepada PTW Receiver syarikat anda.", "notConfigured": "Pautan daftar belum ditetapkan. Tampal URL Web App Apps Script ke dalam API_URL di bahagian atas fail ini.", "role_admin": "Admin", "role_entry": "Pasukan kemasukan", "role_contractor": "PTW Receiver", "testMode": "MOD UJIAN – semua data yang dimasukkan kini ditandakan sebagai data ujian dan boleh dipadam", "t_ptw": "Hari 1 · PTW", "t_reval": "Pengesahan semula", "t_close": "Penutupan", "t_upload": "Muat naik Excel", "t_correct": "Mohon pembetulan", "t_dash": "Ringkasan", "t_corr": "Pembetulan", "t_settings": "Tetapan & log", "enterData": "Masukkan data:", "paperNote": "PTW kertas kekal sebagai dokumen sah. Rekod yang telah dihantar tidak boleh diubah – gunakan \"Mohon pembetulan\".", "review": "Semak", "confirm": "Sahkan dan hantar", "back": "Kembali untuk ubah", "cancel": "Batal", "close": "Tutup", "sec_details": "Butiran permit", "sec_wt": "Jenis kerja", "sec_doc": "Dokumen sokongan dilampirkan", "sec_valid": "Tempoh sah dan waktu Hari 1", "sec_sign": "Penandatangan", "sec_rev": "Blok pengesahan semula", "sec_close": "Penutupan (Seksyen 5)", "choose": "– pilih –", "required": "wajib", "reviewTitle": "Semak sebelum menghantar", "reviewWarn": "Perkara berikut akan direkodkan dan dapat dilihat oleh HSSE:", "reviewClean": "Tiada amaran. Penghantaran tidak boleh dibatalkan daripada pihak anda.", "problems": "Sila betulkan perkara berikut – tiada data disimpan:", "row": "Baris", "recorded": "Direkodkan", "receipt": "Resit", "copy": "Salin resit", "copied": "Disalin", "another": "Masukkan lagi", "time": "Masa", "testNote": "Disimpan sebagai data UJIAN.", "flagsHdr": "Direkodkan dengan amaran", "upTitle": "Muat naik templat Excel", "upHint": "Muat turun templat syarikat anda, isi sel putih, simpan, kemudian muat naik di sini. Tiada apa-apa disimpan melainkan setiap baris sah.", "dlTemplate": "Muat turun templat", "pickFile": "Pilih fail .xlsx yang telah diisi", "reading": "Membaca fail…", "validating": "Menyemak dengan daftar…", "upFound": "Ditemui dalam fail", "upPtw": "PTW (Hari 1)", "upRev": "Baris pengesahan semula", "upClose": "Penutupan", "upEmpty": "Fail tiada baris yang diisi.", "upBadTpl": "Ini bukan templat daftar (atau versi lama). Muat turun templat terkini dan salin baris anda ke dalamnya.", "upWrongCo": "Templat ini milik {a} tetapi anda log masuk sebagai {b}.", "upTooBig": "Terlalu banyak baris dalam satu lembaran (maks {n}).", "upReady": "Semua baris sah dan sedia untuk dihantar.", "upSubmit": "Hantar semua", "corrTitle": "Mohon pembetulan", "corrHint": "Terangkan apa yang salah pada rekod daftar. HSSE akan menyemaknya; data asal kekal disimpan.", "recType": "Apa yang anda mahu betulkan?", "rt_PTW": "PTW (Hari 1)", "rt_REVAL": "Satu baris pengesahan semula", "rt_CLOSE": "Penutupan", "field": "Medan", "newValue": "Nilai yang betul", "reason": "Sebab (min 5 aksara)", "sendReq": "Hantar permohonan", "reqSent": "Permohonan dihantar kepada admin HSSE. Rujukan:", "liveNow": "Aktif sekarang", "awaitReval": "Menunggu pengesahan semula hari ini", "expiredOpen": "Tamat tempoh, belum ditutup", "closedAll": "Ditutup", "highFlags": "Dengan tanda keparahan tinggi", "pendingCorr": "Pembetulan belum selesai", "byContractor": "Permit terbuka mengikut kontraktor", "byType": "Permit terbuka mengikut jenis kerja", "simops": "Kemungkinan pertindihan (lokasi sama, aktif serentak)", "permits": "Permit", "contractor": "Syarikat pemohon", "status": "Status", "all": "Semua", "search": "Cari", "showTest": "Data ujian", "real": "Data sebenar sahaja", "testOnly": "Ujian sahaja", "withVoid": "Tunjuk yang dibatalkan", "refresh": "Muat semula", "exportCsv": "Eksport CSV", "noRows": "Tiada yang sepadan.", "loading": "Memuatkan…", "c_ptw": "No. PTW", "c_loc": "Lokasi", "c_types": "Kerja", "c_ram": "RAM", "c_valid": "Sah", "c_day": "Hari", "c_flags": "Tanda", "st_live": "Aktif", "st_sched": "Berjadual", "st_expired": "Tamat tempoh – belum ditutup", "st_closedC": "Ditutup – selesai", "st_closedS": "Ditutup – digantung", "st_void": "Dibatalkan", "matrix": "Pengesahan semula (seperti borang Rev 001)", "seg_Day": "Siang", "seg_Extended": "Lanjutan", "seg_Night": "Malam", "original": "PTW asal", "missing": "tiada", "notYet": "–", "adminEdit": "Ubah medan (direkodkan)", "saveEdit": "Simpan perubahan", "voidIt": "Batalkan permit ini", "voidReason": "Sebab pembatalan", "voided": "Dibatalkan", "edited": "Disimpan.", "pending": "Permohonan belum selesai", "history": "Sejarah", "approve": "Lulus & laksana", "reject": "Tolak", "note": "Catatan (pilihan)", "none": "Tiada", "setTitle": "Tetapan", "testToggle": "Mod ujian (tandakan semua kemasukan baharu sebagai data ujian)", "dayWin": "Tempoh syif siang (pilihan – digunakan untuk amaran)", "from": "Dari", "to": "Hingga", "save": "Simpan", "purgeTitle": "Padam data ujian", "purgeHint": "Memadam setiap baris bertanda UJIAN. Data sebenar tidak disentuh. Taip PURGE untuk mengesahkan.", "purge": "Padam data ujian", "removed": "baris dipadam", "logTitle": "Aktiviti terkini", "e_BAD_CODE": "Kod akses tidak dikenali.", "e_LOCKED": "Terlalu banyak kod salah. Cuba lagi dalam 10 minit.", "e_FORBIDDEN": "Tidak dibenarkan untuk tahap akses anda.", "netErr": "Tiada sambungan ke daftar. Semak internet anda dan cuba lagi – isian anda masih ada pada skrin.", "badResp": "Balasan daftar tidak dijangka. Cuba lagi.", "typeSearch": "Taip untuk mencari…", "useOther": "Guna \"{x}\" (tiada dalam senarai)", "pickOrType": "Pilih daripada senarai atau taip yang baharu", "reqAlways": "Wajib", "autoValidTo": "Sah-hingga diisi secara automatik: 7 hari dari sah-dari (Hari 1 + 6). Boleh dipendekkan, tidak boleh dipanjangkan.", "jhaNote": "JHA dan Work Method Statement sentiasa ditanda – tiada PTW tanpa kedua-duanya.", "listsTitle": "Senarai lungsur", "listsHint": "Satu entri setiap baris. Pengguna masih boleh menaip nilai yang tiada dalam senarai.", "listDept": "Jabatan", "listLoc": "Lokasi", "listsSaved": "Senarai disimpan.", "help_ptwNo": "Gunakan nombor yang tercetak pada permit kertas", "forgot": "Lupa kod akses?", "forgotSent": "Jika emel pemilik telah ditetapkan, kod akses telah dihantar ke emel itu."};
+
+const t = (k, r) => { let s = (S.lang === 'ms' && T_MS[k]) || (T[k] || [k, k])[S.lang === 'en' ? 0 : 1]; if (r) for (const x in r) s = s.replace('{' + x + '}', r[x]); return s; };
+const lab = c => c[S.lang] || (S.lang === 'ms' && c.id) || c.en;
 
 /* ---------- state ---------- */
 const S = { lists: { dept: [], location: [] }, lang: 'en', code: '', role: '', contractor: '', schema: null, settings: {}, tab: '', draft: { ptw: {}, reval: {}, close: {}, corr: { recordType: 'PTW' } },
             data: null, f: { contractor: '', status: '', type: '', q: '', test: 'all', voided: false, kpi: '' }, drawer: null, result: null, upload: null, busy: false };
-try { S.lang = localStorage.getItem('ptw_lang') || ((navigator.language || '').startsWith('id') ? 'id' : 'en'); } catch (e) {}
+try { S.lang = localStorage.getItem('ptw_lang') || ((navigator.language || '').startsWith('id') ? 'id' : (navigator.language || '').startsWith('ms') ? 'ms' : 'en'); if (['en','id','ms'].indexOf(S.lang) < 0) S.lang = 'en'; } catch (e) {}
 
 /* ---------- tiny DOM helper ---------- */
 function h(tag, attrs, ...kids) {
@@ -171,7 +191,7 @@ function today() { return window.__today || new Intl.DateTimeFormat('en-CA', { t
 const dms = s => new Date(s + 'T00:00:00Z').getTime();
 const ddiff = (a, b) => Math.round((dms(b) - dms(a)) / 864e5);
 const addD = (s, n) => new Date(dms(s) + n * 864e5).toISOString().slice(0, 10);
-const fmtD = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00Z'); return isNaN(d) ? s : d.toLocaleDateString(S.lang === 'id' ? 'id-ID' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }); };
+const fmtD = s => { if (!s) return ''; const d = new Date(s + 'T00:00:00Z'); return isNaN(d) ? s : d.toLocaleDateString(S.lang === 'id' ? 'id-ID' : S.lang === 'ms' ? 'ms-MY' : 'en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' }); };
 const norm = s => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
 
 /* ---------- API ---------- */
@@ -185,18 +205,23 @@ async function api(action, extra) {
   if (!j.ok && j.error) { const m = T['e_' + j.error]; throw Object.assign(new Error(m ? t('e_' + j.error) : (j.message || j.error)), { code: j.error }); }
   return j;
 }
-const errText = e => e[S.lang] || e.en;
+const errText = e => e[S.lang] || (S.lang === 'ms' && e.id) || e.en;
 
 /* ---------- login ---------- */
+async function forgot() {
+  const el = document.getElementById('forgotmsg');
+  try { await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'forgotCode' }) }); } catch (e) {}
+  if (el) el.textContent = t('forgotSent');
+}
 function renderLogin(msg) {
   const inp = h('input', { type: 'password', id: 'code', autocomplete: 'off', 'aria-label': t('code') });
   const go = async () => { const c = inp.value.trim(); if (!c) return; btn.disabled = true; btn.textContent = t('loggingIn'); await doLogin(c, true); };
   const btn = h('button', { class: 'btn', onclick: go }, t('login'));
   inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') go(); });
   $root().replaceChildren(h('div', { class: 'wrap' }, h('div', { class: 'login' },
-    h('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, h('div', { class: 'brand', style: 'color:var(--green-d)' }, 'EcoOils ', t('title'), h('small', { style: 'color:var(--mute)' }, t('sub'))), langSwitch(true)),
+    h('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, h('div', { class: 'brand' }, 'EcoOils ', t('title'), h('small', { style: 'color:var(--mute)' }, t('sub'))), langSwitch(true)),
     h('div', { class: 'card' }, h('label', { class: 'f' }, t('code'), inp), h('p', { class: 'hint' }, t('loginHint')),
-      msg ? h('div', { class: 'err' }, msg) : null, h('div', { class: 'row' }, btn)))));
+      msg ? h('div', { class: 'err' }, msg) : null, h('div', { class: 'row' }, btn, h('button', { class: 'btn ghost small', type: 'button', onclick: forgot }, t('forgot'))), h('div', { id: 'forgotmsg', class: 'hint' })))));
   inp.focus();
 }
 async function doLogin(code, manual) {
@@ -211,7 +236,10 @@ async function doLogin(code, manual) {
 }
 function logout() { S.code = ''; S.role = ''; S.data = null; S.drawer = null; S.result = null; try { sessionStorage.removeItem('ptw_code'); } catch (e) {} renderLogin(); }
 function langSwitch(onLogin) {
-  return h('div', { class: 'langsw', role: 'group', 'aria-label': 'Language' }, ['en', 'id'].map(l => h('button', { class: S.lang === l ? 'on' : '', onclick: () => { S.lang = l; try { localStorage.setItem('ptw_lang', l); } catch (e) {} document.documentElement.lang = l; S.code ? render() : renderLogin(); } }, l === 'en' ? 'EN' : 'ID')));
+  const names = { en: 'EN', id: 'ID', ms: 'MS' };
+  return h('div', { class: 'langcol' },
+    h('span', { class: 'ver', id: 'appver', title: 'Version' }, 'v' + APP_VERSION),
+    h('div', { class: 'langsw', role: 'group', 'aria-label': 'Language' }, ['en', 'id', 'ms'].map(l => h('button', { class: S.lang === l ? 'on' : '', onclick: () => { S.lang = l; try { localStorage.setItem('ptw_lang', l); } catch (e) {} document.documentElement.lang = l; S.code ? render() : renderLogin(); } }, names[l]))));
 }
 
 /* ---------- shell ---------- */
@@ -266,7 +294,7 @@ function ctl(col, store, key, onchange, attrs) {
   if (col.t === 'list' || col.t === 'day') {
     const o = opts(col);
     return h('select', { value: store[key] || '', onchange: e => set(e.target.value), 'aria-label': lab(col) }, h('option', { value: '' }, t('choose')),
-      o.map(x => h('option', { value: x }, col.k === 'segment' ? x + ' – ' + t('seg_' + x) : col.t === 'day' ? (S.lang === 'id' ? 'Hari ' : 'Day ') + x : x)));
+      o.map(x => h('option', { value: x }, col.k === 'segment' ? x + ' – ' + t('seg_' + x) : col.t === 'day' ? (S.lang !== 'en' ? 'Hari ' : 'Day ') + x : x)));
   }
   if (col.t === 'bool') {
     const lock = !!col.lock; if (lock) store[key] = 'Y';
@@ -352,8 +380,8 @@ function resultCard() {
 }
 function flagInfo(code) {
   const [base, param] = code.split(':'); const f = S.schema.flags[base] || { en: base, id: base, sev: 'warn' };
-  let txt = f[S.lang] || f.en;
-  if (base === 'DOC_MISSING') { const d = S.schema.docs.find(x => x[0] === param); txt = txt.replace('{x}', d ? (S.lang === 'id' ? d[2] : d[1]) : param); } else if (param) txt += ' (' + param + ')';
+  let txt = f[S.lang] || f.id && S.lang === 'ms' && f.id || f.en;
+  if (base === 'DOC_MISSING') { const d = S.schema.docs.find(x => x[0] === param); txt = txt.replace('{x}', d ? (S.lang !== 'en' ? d[2] : d[1]) : param); } else if (param) txt += ' (' + param + ')';
   return { txt, sev: f.sev, base };
 }
 
@@ -523,13 +551,13 @@ function viewDash() {
       kpi(pend, t('pendingCorr'), pend ? 'amber' : 'grey', () => { S.tab = 'corr'; render(); })),
     h('div', { class: 'grid', style: 'margin-top:14px' },
       h('div', { class: 'card', style: 'margin:0' }, h('h3', { style: 'margin-top:0' }, t('byContractor')), bars(S.schema.contractors.map(c => [c, open.filter(x => x.p.contractor === c).length]))),
-      h('div', { class: 'card', style: 'margin:0' }, h('h3', { style: 'margin-top:0' }, t('byType')), bars(S.schema.workTypes.map(w => [S.lang === 'id' ? w[2] : w[1], open.filter(x => x.p['wt_' + w[0]] === 'Y').length]).filter(i => i[1] > 0).slice(0, 8)))),
+      h('div', { class: 'card', style: 'margin:0' }, h('h3', { style: 'margin-top:0' }, t('byType')), bars(S.schema.workTypes.map(w => [S.lang !== 'en' ? w[2] : w[1], open.filter(x => x.p['wt_' + w[0]] === 'Y').length]).filter(i => i[1] > 0).slice(0, 8)))),
     pairs.length ? h('div', { class: 'warnbox', style: 'margin-top:14px' }, h('b', null, t('simops')), h('ul', { class: 'flaglist' }, pairs.map(([x, y]) => h('li', null, h('span', { class: 'chip warn' }, '▲'), h('span', null, x.p.contractor + ' ' + x.p.ptwNo + '  ↔  ' + y.p.contractor + ' ' + y.p.ptwNo + ' @ ' + x.p.location))))) : null,
     h('div', { class: 'card' }, h('h2', null, t('permits') + ' (' + shown.length + ')'),
       h('div', { class: 'filters' },
         sel('contractor', t('contractor'), [h('option', { value: '' }, t('all')), S.schema.contractors.map(c => h('option', { value: c }, c))]),
         sel('status', t('status'), [h('option', { value: '' }, t('all')), ['live', 'sched', 'expired', 'closedC', 'closedS'].map(s => h('option', { value: s }, t('st_' + s)))]),
-        sel('type', t('c_types'), [h('option', { value: '' }, t('all')), S.schema.workTypes.map(w => h('option', { value: w[0] }, S.lang === 'id' ? w[2] : w[1]))]),
+        sel('type', t('c_types'), [h('option', { value: '' }, t('all')), S.schema.workTypes.map(w => h('option', { value: w[0] }, S.lang !== 'en' ? w[2] : w[1]))]),
         sel('test', t('showTest'), [h('option', { value: 'all' }, t('all')), h('option', { value: 'real' }, t('real')), h('option', { value: 'test' }, t('testOnly'))]),
         h('label', null, t('search'), h('input', { type: 'text', value: S.f.q, oninput: e => { S.f.q = e.target.value; S.f.kpi = ''; clearTimeout(S._qt); S._qt = setTimeout(render, 250); } })),
         h('label', { style: 'display:flex;gap:5px;align-items:center' }, h('input', { type: 'checkbox', style: 'width:auto;min-height:0', checked: S.f.voided, onchange: e => { S.f.voided = e.target.checked; render(); } }), t('withVoid')),
@@ -538,7 +566,7 @@ function viewDash() {
       shown.length ? h('div', { class: 'tablewrap' }, h('table', null, h('thead', null, h('tr', null, [t('c_ptw'), t('contractor'), t('c_loc'), t('c_types'), t('c_ram'), t('c_valid'), t('c_day'), t('status'), t('c_flags')].map(x => h('th', null, x)))),
         h('tbody', null, shown.slice(0, 400).map(x => h('tr', { class: 'click', tabindex: 0, onclick: () => { S.drawer = { key: x.p.contractor + '|' + x.p.ptwNo, edit: { recordType: 'PTW', _lockCo: true } }; render(); }, onkeydown: e => { if (e.key === 'Enter') e.target.click(); } },
           h('td', null, h('b', null, x.p.ptwNo), x.p.isTest === 'Y' ? h('span', { class: 'chip yellow', style: 'margin-left:4px' }, 'TEST') : null), h('td', null, x.p.contractor), h('td', null, x.p.location),
-          h('td', null, typesOf(x.p).slice(0, 3).map(w => (S.lang === 'id' ? w[2] : w[1]).replace('*', '')).join(', ')), h('td', null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[x.p.ram] || 'grey') }, x.p.ram)),
+          h('td', null, typesOf(x.p).slice(0, 3).map(w => (S.lang !== 'en' ? w[2] : w[1]).replace('*', '')).join(', ')), h('td', null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[x.p.ram] || 'grey') }, x.p.ram)),
           h('td', null, fmtD(x.p.validFrom) + ' → ' + fmtD(x.p.validTo)), h('td', null, x.status === 'live' ? 'D' + x.dayNo : ''), h('td', null, stChip(x.status)),
           h('td', null, x.flags.length ? h('span', { class: 'chip ' + ['', 'info', 'warn', 'high'][x.score] }, x.flags.length) : '')))))) : h('p', { class: 'hint' }, t('noRows'))));
 }
@@ -563,12 +591,12 @@ function drawerView() {
   return h('div', null, h('div', { class: 'scrim', onclick: () => { S.drawer = null; render(); } }),
     h('aside', { class: 'drawer', role: 'dialog', 'aria-modal': 'true' },
       h('div', { class: 'row', style: 'margin-top:0;justify-content:space-between' }, h('h2', { style: 'margin:0' }, p.contractor + ' · PTW ' + p.ptwNo), h('button', { class: 'btn ghost small', onclick: () => { S.drawer = null; render(); } }, '✕ ' + t('close'))),
-      h('div', { class: 'row', style: 'margin-top:6px' }, stChip(x.status), x.dayNo && (x.status === 'live' || x.status === 'expired') ? h('span', { class: 'chip' }, (S.lang === 'id' ? 'Hari ' : 'Day ') + x.dayNo + ' / 7') : null, p.isTest === 'Y' ? h('span', { class: 'chip yellow' }, 'TEST') : null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[p.ram] || 'grey') }, 'RAM ' + p.ram)),
+      h('div', { class: 'row', style: 'margin-top:6px' }, stChip(x.status), x.dayNo && (x.status === 'live' || x.status === 'expired') ? h('span', { class: 'chip' }, (S.lang !== 'en' ? 'Hari ' : 'Day ') + x.dayNo + ' / 7') : null, p.isTest === 'Y' ? h('span', { class: 'chip yellow' }, 'TEST') : null, h('span', { class: 'chip ' + ({ High: 'red', Medium: 'amber', Low: 'blue' }[p.ram] || 'grey') }, 'RAM ' + p.ram)),
       fl.length ? h('ul', { class: 'flaglist', style: 'margin-top:10px' }, fl.map(flagLi)) : null,
       h('h3', null, t('sec_details')),
       h('dl', { class: 'kv' }, kv(t('c_loc'), p.location), kv(lab(col('ptw', 'workDesc')), p.workDesc), kv(lab(col('ptw', 'applicant')), p.applicant), kv(lab(col('ptw', 'dept')), p.dept), kv('RFM / WO', p.rfmWo),
-        kv(t('c_types'), typesOf(p).map(w => (S.lang === 'id' ? w[2] : w[1]).replace('*', '')).join(', ') + (p.wtOtherText ? ' (' + p.wtOtherText + ')' : '')),
-        kv(t('sec_doc'), S.schema.docs.filter(d => p['doc_' + d[0]] === 'Y').map(d => S.lang === 'id' ? d[2] : d[1]).join(', ')),
+        kv(t('c_types'), typesOf(p).map(w => (S.lang !== 'en' ? w[2] : w[1]).replace('*', '')).join(', ') + (p.wtOtherText ? ' (' + p.wtOtherText + ')' : '')),
+        kv(t('sec_doc'), S.schema.docs.filter(d => p['doc_' + d[0]] === 'Y').map(d => S.lang !== 'en' ? d[2] : d[1]).join(', ')),
         kv(t('c_valid'), fmtD(p.validFrom) + ' → ' + fmtD(p.validTo)), kv(lab(col('ptw', 'jcName')), p.jcName), kv(lab(col('ptw', 'aoName')), p.aoName), kv(lab(col('ptw', 'paName')), p.paName), kv(lab(col('ptw', 'workParty')), p.workParty),
         kv(t('t_close'), p.closeDate ? fmtD(p.closeDate) + ' ' + p.closeTime + ' · ' + p.closeOutcome + ' · ' + p.closeJc + ' / ' + p.closeAo : ''), kv(t('time'), p.submittedAt + ' · ' + p.submittedBy)),
       h('h3', null, t('matrix')),

@@ -1,4 +1,9 @@
 # Changelog
+## v1.2
+- Version label top right, directly above the EN/ID/MS language toggle
+- Malay (MS) added as a third language; EN, ID and MS all supported
+- Minimal Shell-style look: Jost light uppercase title, Shell red/yellow accents, layout fits phone to large monitor
+- Access codes are emailed to the owner (showCodes, rotateAllCodes, "Forgot access code?" on login); codes are never written to the execution log
 ## v1.1
 - "Applicant company" label; searchable Department dropdown; Location dropdown (with other)
 - JHA and Work Method Statement always ticked (locked)

@@ -9,7 +9,7 @@
  * SETUP: see README.md  (run setup() once, then Deploy > Web app > Execute as: Me, Access: Anyone)
  */
 const TZ = 'Asia/Jakarta';
-const VERSION = '1.1';
+const VERSION = '1.2';
 const CONTRACTORS = ['GSB', 'WEN', 'KKS', 'PBS'];
 const RAM = ['Low-Low', 'Low', 'Medium', 'High'];
 const SEGMENTS = ['Day', 'Extended', 'Night'];
@@ -612,6 +612,7 @@ function doGet() { return json_({ ok: true, app: 'EcoOils Mentari PTW Registry',
 function doPost(e) {
   try {
     const p = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (p.action === 'forgotCode') { forgotCode_(); return json_({ ok: true }); }
     const auth = authenticate_(p.code);
     if (!auth) return json_({ ok: false, error: 'BAD_CODE' });
     switch (p.action) {
@@ -678,12 +679,26 @@ function newCodes_(force) {
     if (force || !p.getProperty('CODE_' + r)) p.setProperty('CODE_' + r, Utilities.getUuid().replace(/-/g, '').slice(0, 10).toUpperCase());
   });
 }
-/** Run to see the current access codes in View > Logs. Share ONLY each contractor's own code with them. */
-function showCodes() {
+/** Emails the current access codes to the project owner (the account that owns this script). Codes are never written to the log. */
+function emailCodes_(subject) {
   const p = PropertiesService.getScriptProperties();
-  Logger.log('ADMIN (you only) : ' + p.getProperty('CODE_ADMIN'));
-  Logger.log('ENTRY (assistants): ' + p.getProperty('CODE_ENTRY'));
-  CONTRACTORS.forEach(c => Logger.log(c + ' : ' + p.getProperty('CODE_' + c)));
+  let to = p.getProperty('OWNER_EMAIL');
+  if (!to) { to = Session.getEffectiveUser().getEmail(); if (to) p.setProperty('OWNER_EMAIL', to); }
+  if (!to) throw new Error('No owner email available');
+  const lines = ['ADMIN (you only): ' + p.getProperty('CODE_ADMIN'), 'ENTRY (assistants): ' + p.getProperty('CODE_ENTRY')]
+    .concat(CONTRACTORS.map(c => c + ': ' + p.getProperty('CODE_' + c)));
+  MailApp.sendEmail(to, subject, lines.join('\n') + '\n\nShare ONLY each contractor\'s own code with them. Do not forward the ADMIN code.');
+  return to;
 }
-/** Run if a code leaks – every code is replaced and the old ones stop working immediately. */
+/** Run to email the current access codes to yourself. Share ONLY each contractor's own code with them. */
+function showCodes() { Logger.log('Access codes emailed to ' + emailCodes_('PTW Registry – access codes')); }
+/** Run if a code leaks – every code is replaced, the old ones stop working immediately, and the new list is emailed to you. */
 function rotateAllCodes() { newCodes_(true); showCodes(); }
+/** "Forgot access code?" on the login page: emails the current codes to the owner. Nothing is returned to the caller; max 5 per hour. */
+function forgotCode_() {
+  const cache = CacheService.getScriptCache();
+  const n = Number(cache.get('forgot') || 0);
+  if (n >= 5) return;
+  cache.put('forgot', String(n + 1), 3600);
+  try { emailCodes_('PTW Registry – access codes (forgot code request)'); } catch (e) { /* stay silent to the caller */ }
+}
