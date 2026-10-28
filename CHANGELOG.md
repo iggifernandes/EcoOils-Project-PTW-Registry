@@ -1,4 +1,6 @@
 # Changelog
+## v1.3
+- Standard EcoOils header: Mentari logo left (same size as every app); right column = version only, EN/ID/MS toggle, then a small "v1.3 · date" line. Front end only.
 ## v1.2
 - Version label top right, directly above the EN/ID/MS language toggle
 - Malay (MS) added as a third language; EN, ID and MS all supported

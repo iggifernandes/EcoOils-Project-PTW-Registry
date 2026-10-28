@@ -4,8 +4,8 @@ const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'h
 const w=dom.window,d=w.document;let ok=0,bad=0;const T=(n,c)=>{c?ok++:(bad++,console.log('FAIL',n))};
 setTimeout(()=>{
  T('login rendered',!!d.querySelector('.login'));
- const col=d.querySelector('.login .langcol');T('version above toggle',col&&col.children[0].id==='appver'&&col.children[1].classList.contains('langsw'));
- T('version text v1.2',d.getElementById('appver').textContent==='v1.2');
+ const col=d.querySelector('header.eh .langcol');T('version above toggle',col&&col.children[0].id==='appver'&&col.children[1].classList.contains('langsw'));
+ T('version text v1.2',d.getElementById('appver').textContent==='v1.3');
  T('3 language buttons',[...d.querySelectorAll('.langsw button')].map(b=>b.textContent).join()==='EN,ID,MS');
  [...d.querySelectorAll('.langsw button')].find(b=>b.textContent==='MS').click();
  T('Malay shown',d.body.textContent.includes('Kod akses')&&d.body.textContent.includes('Log masuk'));
