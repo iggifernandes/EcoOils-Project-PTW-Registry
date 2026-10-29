@@ -13,7 +13,7 @@ setTimeout(async()=>{
  T('role chip + logout inside titlebar',!!root.querySelector('.titlebar .chip')&&[...root.querySelectorAll('.titlebar button')].some(b=>b.textContent==='Log out'));
  T('header has no chip/logout',!root.querySelector('header.eh .chip')&&![...root.querySelectorAll('header.eh button')].some(b=>b.textContent==='Log out'));
  T('version above toggle',root.querySelector('header.eh .eh-r').children[0].id==='appver'&&root.querySelector('header.eh .eh-r').children[1].classList.contains('eh-l'));
- T('v1.4 shown',d.getElementById('appver').textContent==='v1.4');
+ T('v1.4.1 shown',d.getElementById('appver').textContent==='v1.4.1');
  T('single title block',root.querySelectorAll('.brand').length===1);
  T('tabs present',root.querySelectorAll('nav.tabs button').length>=3);
  T('no stray null',!/\bnull\b/.test(root.textContent));

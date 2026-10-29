@@ -1,4 +1,6 @@
 # Changelog
+## v1.4.1
+- Signatories in order: Job Coordinator, Permit Authoriser, Area Owner (Day 1 form and permit detail view)
 ## v1.4
 - Compact layout: title, role and log out share one slim row under the standard header; content uses the full screen width
 ## v1.3
