@@ -13,7 +13,7 @@ let ok=0,bad=0;const T=(n,c)=>{c?ok++:(bad++,console.log('FAIL',n))};
 const post=o=>JSON.parse(vm.runInContext('doPost',ctx)({postData:{contents:JSON.stringify(o)}}).s);
 vm.runInContext('newCodes_(false)',ctx);
 T('codes made',props.CODE_ADMIN&&props.CODE_GSB);
-T('version 1.7',JSON.parse(vm.runInContext('doGet',ctx)().s).version==='1.7');
+T('version 1.8',JSON.parse(vm.runInContext('doGet',ctx)().s).version==='1.8');
 let r=post({action:'forgotCode'});T('forgot ok no secrets',r.ok===true&&!JSON.stringify(r).includes(props.CODE_ADMIN));
 T('mail sent to owner',mails.length===1&&mails[0].to==='owner@example.com'&&mails[0].body.includes(props.CODE_ADMIN));
 for(let i=0;i<8;i++)post({action:'forgotCode'});
@@ -50,4 +50,9 @@ T('loc hyphen -> en dash',nl('Extraction Plant - Elevation')==='Extraction Plant
 T('loc main+detail ok',cl(nl('Extraction Plant \u2013 RVDF'))===null);
 T('loc other specific ok',cl(nl('Other specific location - Gate 3 road'))===null);
 T('no site-wide default',vm.runInContext('DEFAULT_LISTS',ctx).location.indexOf('Site-wide')<0&&vm.runInContext('DEFAULT_LISTS',ctx).location.indexOf('Block 6B')>=0);
+const wr=o=>vm.runInContext('workRuleErrors_',ctx)(o);
+T('hot needs fire watcher',wr({wt_hot:'Y'}).length===1&&wr({wt_hot:'Y',fireWatcher:'Budi'}).length===0);
+{const o={wt_lifting:'Y'};wr(o);T('lifting auto-ticks plan',o.doc_lifting==='Y');}
+T('electrical needs isolation or note',wr({wt_electrical:'Y'}).length===1&&wr({wt_electrical:'Y',doc_isolation:'Y'}).length===0&&wr({wt_electrical:'Y',isoNote:'Lighting only, de-energised by switch'}).length===0);
+const hd=vm.runInContext('PTW_HEAD()',ctx);T('new cols at end of header',hd.slice(-2).join()==='fireWatcher,isoNote'&&hd.indexOf('voided')<hd.indexOf('fireWatcher'));
 console.log('backend',ok,'passed',bad,'failed');

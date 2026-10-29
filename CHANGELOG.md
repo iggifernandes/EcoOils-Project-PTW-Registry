@@ -1,4 +1,10 @@
 # Changelog
+## Code.gs 1.8 / page 1.4.5
+- Hot Work: Fire Watcher name is required.
+- Lifting: the Lifting Plan is ticked automatically (and locked while Lifting is ticked).
+- Electrical: the Isolation Plan must be ticked, or the Job Coordinator must record why isolation is not required.
+- Two new columns (fireWatcher, isoNote) added at the END of the PTW sheet; existing sheets get the headers automatically. All five Excel templates have the two new columns.
+
 ## Code.gs 1.7 / page 1.4.4
 - Location is now two parts: main area plus the exact location (e.g. Extraction Plant – Elevation, RVDF). Both are required; saved as "Main – Detail" in the existing Location column.
 - Removed "Site-wide"; added "Block 6B" and a single "Other specific location" option.

@@ -14,7 +14,7 @@ setTimeout(async()=>{
  T('role chip + logout inside titlebar',!!root.querySelector('.titlebar .chip')&&[...root.querySelectorAll('.titlebar button')].some(b=>b.textContent==='Log out'));
  T('header has no chip/logout',!root.querySelector('header.eh .chip')&&![...root.querySelectorAll('header.eh button')].some(b=>b.textContent==='Log out'));
  T('version above toggle',root.querySelector('header.eh .eh-r').children[0].id==='appver'&&root.querySelector('header.eh .eh-r').children[1].classList.contains('eh-l'));
- T('v1.4.4 shown',d.getElementById('appver').textContent==='v1.4.4');
+ T('v1.4.5 shown',d.getElementById('appver').textContent==='v1.4.5');
  T('single title block',root.querySelectorAll('.brand').length===1);
  T('tabs present',root.querySelectorAll('nav.tabs button').length>=3);
  T('no stray null',!/\bnull\b/.test(root.textContent));
@@ -37,4 +37,10 @@ setTimeout(async()=>{
  const li2=d.querySelector('.locctl').querySelectorAll('input')[1];li2.focus();li2.dispatchEvent(new w.Event('focus'));
  T('detail suggestions filtered',[...d.querySelectorAll('.locctl .combolist li')].map(x=>x.textContent).join('|').includes('Elevation'));
  li2.value='RVDF';li2.dispatchEvent(new w.Event('input'));T('location stored main+detail',w.eval('S.draft.ptw.location')==='Extraction Plant \u2013 RVDF');
+ const cb=n=>[...d.querySelectorAll('.checks label')].find(l=>l.textContent.includes(n)).querySelector('input');
+ const tick=n=>{const i=cb(n);i.checked=true;i.dispatchEvent(new w.Event('change'))};
+ tick('Hot Work');T('hot work shows fire watcher box',[...d.querySelectorAll('label.f')].some(l=>l.textContent.includes('Fire Watcher')));
+ tick('Lifting*');T('lifting plan auto ticked and locked',cb('Lifting Plan').checked&&cb('Lifting Plan').disabled&&w.eval("S.draft.ptw.doc_lifting")==='Y');
+ tick('Electrical*');T('electrical shows isolation note box',[...d.querySelectorAll('label.f')].some(l=>l.textContent.includes('Isolation not required')));
+ tick('Isolation Plan');T('isolation plan ticked hides note box',![...d.querySelectorAll('label.f')].some(l=>l.textContent.includes('Isolation not required')));
  console.log('ui2',ok,'passed',bad,'failed');process.exit(bad?1:0)},500);

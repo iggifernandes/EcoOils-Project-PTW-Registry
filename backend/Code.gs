@@ -1,4 +1,4 @@
-const VERSION = '1.7'; // Code.gs version – bump on every change
+const VERSION = '1.8'; // Code.gs version – bump on every change
 /**
  * EcoOils Mentari – PTW Registry · Google Apps Script backend  (v1.0)
  *
@@ -118,7 +118,10 @@ function ptwCols_() {
     { k: 'jcName', en: 'Job Coordinator (Permit Holder)', id: 'Job Coordinator (Pemegang Izin)', t: 'text', r: 1 },
     { k: 'aoName', en: 'Area Owner (Permit Issuer)', id: 'Area Owner (Penerbit Izin)', t: 'text', r: 1 },
     { k: 'paName', en: 'Permit Authoriser', id: 'Permit Authoriser', t: 'text', r: 1 },
-    { k: 'workParty', en: 'Work party (no. of people)', id: 'Jumlah pekerja', t: 'num', r: 0 }
+    { k: 'workParty', en: 'Work party (no. of people)', id: 'Jumlah pekerja', t: 'num', r: 0 },
+    // v1.8 extras: stored at the END of the sheet so older sheets keep their column order
+    { k: 'fireWatcher', en: 'Fire Watcher name (Hot Work)', id: 'Nama Fire Watcher (Kerja Panas)', t: 'text', r: 0, x: 1 },
+    { k: 'isoNote', en: 'Isolation not required – reason (Job Coordinator)', id: 'Isolasi tidak diperlukan – alasan (Job Coordinator)', t: 'text', r: 0, x: 1 }
   );
   return c;
 }
@@ -148,8 +151,9 @@ function closeCols_() {
     { k: 'closeAo', en: 'Area Owner (closed)', id: 'Area Owner (menutup)', t: 'text', r: 1 }
   ];
 }
-const PTW_HEAD = () => ['submissionId', 'submittedAt', 'submittedBy', 'isTest'].concat(ptwCols_().map(c => c.k),
-  ['flags', 'closeDate', 'closeTime', 'closeOutcome', 'closeJc', 'closeAo', 'closeSubmittedAt', 'closeFlags', 'voided']);
+const PTW_HEAD = () => ['submissionId', 'submittedAt', 'submittedBy', 'isTest'].concat(ptwCols_().filter(c => !c.x).map(c => c.k),
+  ['flags', 'closeDate', 'closeTime', 'closeOutcome', 'closeJc', 'closeAo', 'closeSubmittedAt', 'closeFlags', 'voided'],
+  ptwCols_().filter(c => c.x).map(c => c.k));
 const REVAL_HEAD = () => ['submissionId', 'submittedAt', 'submittedBy', 'isTest'].concat(revalCols_().map(c => c.k), ['flags', 'voided']);
 const CORR_HEAD = ['id', 'requestedAt', 'requestedBy', 'contractor', 'recordType', 'ptwNo', 'day', 'segment', 'field', 'oldValue', 'newValue', 'reason', 'status', 'resolvedAt', 'resolvedNote'];
 const LOG_HEAD = ['time', 'role', 'contractor', 'action', 'detail'];
@@ -198,6 +202,14 @@ function normVal_(col, v) {
   }
   if (col.k === 'location') return str_(v).replace(/\s*[-\u2013\u2014]\s+/, ' \u2013 ').replace(/\s+/g, ' ');
   return str_(v);
+}
+/** v1.8 work-type rules. Auto-ticks the Lifting Plan; returns a list of [en,id] errors. */
+function workRuleErrors_(o) {
+  const e = [];
+  if (o.wt_lifting === 'Y') o.doc_lifting = 'Y';
+  if (o.wt_hot === 'Y' && !str_(o.fireWatcher)) e.push(['Hot Work: Fire Watcher name is required', 'Kerja Panas: nama Fire Watcher wajib diisi']);
+  if (o.wt_electrical === 'Y' && o.doc_isolation !== 'Y' && !str_(o.isoNote)) e.push(['Electrical: tick the Isolation Plan, or the Job Coordinator must note why isolation is not required', 'Kelistrikan: centang Rencana Isolasi, atau Job Coordinator wajib mencatat alasan isolasi tidak diperlukan']);
+  return e;
 }
 /** returns [en,id] message or null */
 function checkVal_(col, v) {
@@ -269,8 +281,14 @@ function sheet_(name) {
   if (!s) throw new Error('Sheet "' + name + '" missing – run setup() first');
   return s;
 }
+/** older sheets: add any new trailing columns to the header row */
+function ensureHeader_(sh, name) {
+  if (name !== 'PTW') return;
+  const want = PTW_HEAD(), have = sh.getLastColumn();
+  if (have > 0 && have < want.length) sh.getRange(1, have + 1, 1, want.length - have).setValues([want.slice(have)]).setFontWeight('bold').setBackground('#e8f3e2');
+}
 function readAll_(name) {
-  const sh = sheet_(name);
+  const sh = sheet_(name); ensureHeader_(sh, name);
   const last = sh.getLastRow(), cols = sh.getLastColumn();
   if (last < 1) return { sh, headers: [], rows: [] };
   const vals = sh.getRange(1, 1, last, cols).getValues();
@@ -286,7 +304,7 @@ function readAll_(name) {
 }
 function appendObjs_(name, headers, objs) {
   if (!objs.length) return;
-  const sh = sheet_(name);
+  const sh = sheet_(name); ensureHeader_(sh, name);
   const start = sh.getLastRow() + 1;
   const rng = sh.getRange(start, 1, objs.length, headers.length);
   rng.setNumberFormat('@');
@@ -430,6 +448,7 @@ function processBatch_(auth, batch, dryRun) {
       if (isDate_(o.validFrom) && isDate_(o.validTo) && o.validTo < o.validFrom) errors.push(er_('PTW', row, 'Valid-to is before valid-from', 'Berlaku-sampai sebelum berlaku-dari'));
       { const xe = day1ExtError_(o); if (xe) errors.push(er_('PTW', row, xe[0], xe[1])); }
       if (o.doc_jha !== 'Y' || o.doc_wms !== 'Y') errors.push(er_('PTW', row, 'JHA and Work Method Statement are mandatory – both must be ticked on every PTW', 'JHA dan Pernyataan Metode Kerja wajib – keduanya harus dicentang pada setiap PTW'));
+      workRuleErrors_(o).forEach(m => errors.push(er_('PTW', row, m[0], m[1])));
       if (!WORK_TYPES.some(w => o['wt_' + w[0]] === 'Y')) errors.push(er_('PTW', row, 'Tick at least one type of work', 'Centang minimal satu jenis pekerjaan'));
       if (o.wt_other === 'Y' && !o.wtOtherText) errors.push(er_('PTW', row, '"Other" work type needs a description', 'Jenis pekerjaan "Lainnya" perlu dijelaskan'));
       if (o.ptwNo && o.contractor && ptwMap[key_(o.contractor, o.ptwNo)]) errors.push(er_('PTW', row, 'PTW ' + o.ptwNo + ' is already registered for ' + o.contractor + '. To change it use "Request correction".', 'PTW ' + o.ptwNo + ' sudah terdaftar untuk ' + o.contractor + '. Untuk mengubah gunakan "Ajukan koreksi".'));
