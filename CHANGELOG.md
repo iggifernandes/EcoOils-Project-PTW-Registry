@@ -1,4 +1,9 @@
 # Changelog
+## Code.gs 1.7 / page 1.4.4
+- Location is now two parts: main area plus the exact location (e.g. Extraction Plant – Elevation, RVDF). Both are required; saved as "Main – Detail" in the existing Location column.
+- Removed "Site-wide"; added "Block 6B" and a single "Other specific location" option.
+- New Settings list "Location details" (Main | Detail) for the suggestions. Existing sheets upgrade automatically.
+
 ## Code.gs v1.6 / page v1.4.3
 - Applicant company (Admin and Entry team): GSB, WEN, KKS, PBS, EcoOils (Project), EcoOils (Operations), or Other with a blank box for the company name (stored as OTHER: <NAME>)
 - Contractors logged in with their own code stay locked to their own company

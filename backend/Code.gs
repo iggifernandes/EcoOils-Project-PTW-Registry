@@ -1,4 +1,4 @@
-const VERSION = '1.6'; // Code.gs version – bump on every change
+const VERSION = '1.7'; // Code.gs version – bump on every change
 /**
  * EcoOils Mentari – PTW Registry · Google Apps Script backend  (v1.0)
  *
@@ -61,9 +61,11 @@ const DOC_REQUIRED = { hot: 'hotwork', lifting: 'lifting', isolation: 'isolation
 // Starter dropdown values. Admin edits them in the web app (Settings & log). Anything typed outside the list is also accepted.
 const DEFAULT_LISTS = {
   dept: ['HSSE', 'Construction', 'Piping', 'Mechanical', 'Electrical', 'Instrumentation & Control', 'Civil & Structural', 'Scaffolding', 'Welding / Fabrication', 'Painting & Insulation', 'Commissioning', 'QA/QC', 'Logistics & Warehouse', 'Security', 'HR & Admin', 'Operations', 'Maintenance', 'Project Management'],
-  location: ['Tank Farm', 'Laboratory', 'Admin Building', 'Warehouse', 'Security Building', 'Extraction Plant', 'FFA Plant', 'SBE', 'DTP', 'DTP Furnace', 'WTP', 'WWTP', 'EPP Pit & Pond', 'Plenum Chamber', 'EM Bunker', 'Fire Pump House', 'Emergency Shower / FFE area', 'Plant Parameter Area', 'Switch Room / Substation', 'Workshop', 'Laydown Area', 'Site-wide']
+  location: ['Tank Farm', 'Laboratory', 'Admin Building', 'Warehouse', 'Security Building', 'Extraction Plant', 'FFA Plant', 'SBE', 'DTP', 'DTP Furnace', 'WTP', 'WWTP', 'EPP Pit & Pond', 'Plenum Chamber', 'EM Bunker', 'Fire Pump House', 'Emergency Shower / FFE area', 'Plant Parameter Area', 'Switch Room / Substation', 'Workshop', 'Laydown Area', 'Block 6B', 'Other specific location'],
+  // "Main | Detail" suggestions. The exact location detail is mandatory for every PTW; these only speed up typing.
+  locDetail: ['Extraction Plant | Elevation', 'Extraction Plant | RVDF']
 };
-const LIST_KEYS = ['dept', 'location'];
+const LIST_KEYS = ['dept', 'location', 'locDetail'];
 const MANDATORY_DOCS = ['jha', 'wms'];   // must be ticked on every PTW
 
 const FLAGS = {
@@ -194,11 +196,13 @@ function normVal_(col, v) {
     const s = str_(v).toLowerCase();
     return ['y', 'yes', 'ya', '1', 'true', 'x', 'v', '✓'].indexOf(s) >= 0 ? 'Y' : '';
   }
+  if (col.k === 'location') return str_(v).replace(/\s*[-\u2013\u2014]\s+/, ' \u2013 ').replace(/\s+/g, ' ');
   return str_(v);
 }
 /** returns [en,id] message or null */
 function checkVal_(col, v) {
   if (v === '') return col.r ? ['Missing: ' + col.en, 'Wajib diisi: ' + col.id] : null;
+  if (col.k === 'location') { const i = v.indexOf(' \u2013 '); if (i < 1 || v.slice(i + 3).trim().length < 2) return ['Location: choose the main area AND give the exact location (e.g. Extraction Plant \u2013 Elevation)', 'Lokasi: pilih area utama DAN isi lokasi tepat (mis. Extraction Plant \u2013 Elevation)']; }
   if (col.t === 'date' && !isDate_(v)) return [col.en + ': invalid date (use YYYY-MM-DD)', col.id + ': tanggal tidak valid (YYYY-MM-DD)'];
   if (col.t === 'time' && !isTime_(v)) return [col.en + ': invalid time (use HH:MM, 24h)', col.id + ': jam tidak valid (JJ:MM, 24 jam)'];
   if (col.t === 'num' && !/^\d{1,4}$/.test(v)) return [col.en + ': whole number only', col.id + ': harus bilangan bulat'];
@@ -299,18 +303,27 @@ function ensureLists_() {
   let sh = ss_().getSheetByName('Lists');
   if (!sh) {
     sh = ss_().insertSheet('Lists');
-    const n = Math.max(DEFAULT_LISTS.dept.length, DEFAULT_LISTS.location.length);
-    sh.getRange(1, 1, 1, 2).setValues([LIST_KEYS]).setFontWeight('bold').setBackground('#e8f3e2');
-    const rows = []; for (let i = 0; i < n; i++) rows.push([DEFAULT_LISTS.dept[i] || '', DEFAULT_LISTS.location[i] || '']);
-    const rg = sh.getRange(2, 1, n, 2); rg.setNumberFormat('@'); rg.setValues(rows);
+    const n = Math.max(DEFAULT_LISTS.dept.length, DEFAULT_LISTS.location.length, DEFAULT_LISTS.locDetail.length);
+    sh.getRange(1, 1, 1, 3).setValues([LIST_KEYS]).setFontWeight('bold').setBackground('#e8f3e2');
+    const rows = []; for (let i = 0; i < n; i++) rows.push([DEFAULT_LISTS.dept[i] || '', DEFAULT_LISTS.location[i] || '', DEFAULT_LISTS.locDetail[i] || '']);
+    const rg = sh.getRange(2, 1, n, 3); rg.setNumberFormat('@'); rg.setValues(rows);
+  } else if (str_(sh.getRange(1, 3).getValue()) !== 'locDetail') {
+    // upgrade from v1.6: add the location-detail column; drop "Site-wide"; add Block 6B and Other specific location
+    sh.getRange(1, 3).setValue('locDetail').setFontWeight('bold').setBackground('#e8f3e2');
+    const last = sh.getLastRow(); const locs = [];
+    if (last >= 2) sh.getRange(2, 2, last - 1, 1).getValues().forEach(r => { const v = str_(r[0]); if (v && nm_(v) !== 'site-wide' && nm_(v) !== 'sitewide') locs.push(v); });
+    ['Block 6B', 'Other specific location'].forEach(v => { if (!locs.some(x => nm_(x) === nm_(v))) locs.push(v); });
+    const n = Math.max(locs.length, DEFAULT_LISTS.locDetail.length, last - 1);
+    const rows = []; for (let i = 0; i < n; i++) rows.push([locs[i] || '', DEFAULT_LISTS.locDetail[i] || '']);
+    const rg = sh.getRange(2, 2, n, 2); rg.setNumberFormat('@'); rg.setValues(rows);
   }
   return sh;
 }
 function getLists_() {
   const sh = ensureLists_(); const last = sh.getLastRow();
-  const out = { dept: [], location: [] };
+  const out = { dept: [], location: [], locDetail: [] };
   if (last < 2) return out;
-  const vals = sh.getRange(2, 1, last - 1, 2).getValues();
+  const vals = sh.getRange(2, 1, last - 1, 3).getValues();
   LIST_KEYS.forEach((k, j) => { const seen = {}; vals.forEach(r => { const v = str_(r[j]); if (v && !seen[nm_(v)]) { seen[nm_(v)] = 1; out[k].push(v); } }); });
   return out;
 }
@@ -321,9 +334,9 @@ function saveLists_(inp) {
     arr.forEach(v => { v = str_(v).slice(0, 80); if (v && !seen[nm_(v)]) { seen[nm_(v)] = 1; clean[k].push(v); } });
     if (clean[k].length > 300) throw new Error('Max 300 entries per list');
   });
-  const n = Math.max(clean.dept.length, clean.location.length, sh.getLastRow() - 1, 1);
-  const rows = []; for (let i = 0; i < n; i++) rows.push([clean.dept[i] || '', clean.location[i] || '']);
-  const rg = sh.getRange(2, 1, n, 2); rg.setNumberFormat('@'); rg.setValues(rows);
+  const n = Math.max(clean.dept.length, clean.location.length, clean.locDetail.length, sh.getLastRow() - 1, 1);
+  const rows = []; for (let i = 0; i < n; i++) rows.push([clean.dept[i] || '', clean.location[i] || '', clean.locDetail[i] || '']);
+  const rg = sh.getRange(2, 1, n, 3); rg.setNumberFormat('@'); rg.setValues(rows);
   return clean;
 }
 function getSettings_() {
@@ -668,7 +681,7 @@ function doPost(e) {
       }
       case 'void': return json_({ ok: true, result: voidRecord_(auth, p) });
       case 'saveSettings': { const s = saveSettings_(p.settings); log_(auth, 'settings', JSON.stringify(s)); return json_({ ok: true, settings: s }); }
-      case 'saveLists': { const l = saveLists_(p.lists); log_(auth, 'lists', 'dept=' + l.dept.length + ' location=' + l.location.length); return json_({ ok: true, lists: l }); }
+      case 'saveLists': { const l = saveLists_(p.lists); log_(auth, 'lists', 'dept=' + l.dept.length + ' location=' + l.location.length + ' detail=' + l.locDetail.length); return json_({ ok: true, lists: l }); }
       case 'purgeTest': return json_({ ok: true, result: purgeTest_(auth, p) });
     }
     return json_({ ok: false, error: 'UNKNOWN_ACTION' });

@@ -4,7 +4,7 @@ const c={console,JSON,Math,Date,Number,String,Object,Array,Error,RegExp,Properti
 vm.createContext(c);vm.runInContext(code,c);const schema=JSON.parse(JSON.stringify(vm.runInContext('schema_()',c)));
 const iso=x=>new Date(Date.now()+x*864e5).toISOString().slice(0,10);const T0=iso(0),T6=iso(6);
 const html=fs.readFileSync('/tmp/claude-0/clone2/index.html','utf8').replace(/<script src="https:\/\/cdnjs[^>]*><\/script>/,'').replace(/<link[^>]*fonts[^>]*>/g,'');
-const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'https://x.test/',beforeParse(w){w.scrollTo=()=>{};w.fetch=async(u,o)=>{const a=JSON.parse(o.body).action;return{json:async()=>a==='login'?{ok:true,role:'admin',contractor:'',schema,lists:{dept:[],location:[]},settings:{testMode:true}}:{ok:true,ptw:[{contractor:'GSB',ptwNo:'7001',issueDate:T0,validFrom:T0,validTo:T6,ram:'Medium',location:'SBE',wt_hot:'Y',doc_jha:'Y',doc_wms:'Y',jcName:'A',aoName:'B',paName:'C'}],reval:[],corrections:[],log:[],settings:{}}}};}});
+const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'https://x.test/',beforeParse(w){w.scrollTo=()=>{};w.fetch=async(u,o)=>{const a=JSON.parse(o.body).action;return{json:async()=>a==='login'?{ok:true,role:'admin',contractor:'',schema,lists:{dept:[],location:['Extraction Plant','Other specific location'],locDetail:['Extraction Plant | Elevation','Extraction Plant | RVDF']},settings:{testMode:true}}:{ok:true,ptw:[{contractor:'GSB',ptwNo:'7001',issueDate:T0,validFrom:T0,validTo:T6,ram:'Medium',location:'SBE',wt_hot:'Y',doc_jha:'Y',doc_wms:'Y',jcName:'A',aoName:'B',paName:'C'}],reval:[],corrections:[],log:[],settings:{}}}};}});
 const w=dom.window,d=w.document;let ok=0,bad=0;const T=(n,x)=>{x?ok++:(bad++,console.log('FAIL',n))};
 setTimeout(async()=>{
  await w.eval("doLogin('X',true)");await new Promise(r=>setTimeout(r,300));
@@ -14,7 +14,7 @@ setTimeout(async()=>{
  T('role chip + logout inside titlebar',!!root.querySelector('.titlebar .chip')&&[...root.querySelectorAll('.titlebar button')].some(b=>b.textContent==='Log out'));
  T('header has no chip/logout',!root.querySelector('header.eh .chip')&&![...root.querySelectorAll('header.eh button')].some(b=>b.textContent==='Log out'));
  T('version above toggle',root.querySelector('header.eh .eh-r').children[0].id==='appver'&&root.querySelector('header.eh .eh-r').children[1].classList.contains('eh-l'));
- T('v1.4.3 shown',d.getElementById('appver').textContent==='v1.4.3');
+ T('v1.4.4 shown',d.getElementById('appver').textContent==='v1.4.4');
  T('single title block',root.querySelectorAll('.brand').length===1);
  T('tabs present',root.querySelectorAll('nav.tabs button').length>=3);
  T('no stray null',!/\bnull\b/.test(root.textContent));
@@ -31,4 +31,10 @@ setTimeout(async()=>{
  asel.value='ECOOILS (PROJECT)';asel.dispatchEvent(new w.Event('change'));T('picks EcoOils (Project)',w.eval('S.draft.ptw.contractor')==='ECOOILS (PROJECT)'&&nm.hidden===true);
  asel.value='__other';asel.dispatchEvent(new w.Event('change'));T('Other shows blank name box',nm.hidden===false&&w.eval('S.draft.ptw.contractor')==='');
  nm.value='abc Engineering';nm.dispatchEvent(new w.Event('input'));T('typed name stored',w.eval('S.draft.ptw.contractor')==='OTHER: ABC ENGINEERING');
+ const lc=d.querySelector('.locctl');T('location has two parts',!!lc&&lc.querySelectorAll('input').length===2);
+ const li=lc.querySelectorAll('input');li[0].value='Extraction Plant';li[0].dispatchEvent(new w.Event('input'));
+ T('main alone gives dash form',w.eval('S.draft.ptw.location')==='Extraction Plant \u2013 ');
+ const li2=d.querySelector('.locctl').querySelectorAll('input')[1];li2.focus();li2.dispatchEvent(new w.Event('focus'));
+ T('detail suggestions filtered',[...d.querySelectorAll('.locctl .combolist li')].map(x=>x.textContent).join('|').includes('Elevation'));
+ li2.value='RVDF';li2.dispatchEvent(new w.Event('input'));T('location stored main+detail',w.eval('S.draft.ptw.location')==='Extraction Plant \u2013 RVDF');
  console.log('ui2',ok,'passed',bad,'failed');process.exit(bad?1:0)},500);
