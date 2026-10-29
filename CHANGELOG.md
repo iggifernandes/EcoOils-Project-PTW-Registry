@@ -1,4 +1,7 @@
 # Changelog
+## v1.4.2 (page)
+- "Day 1 · PTW" tab replaced by a red "+ Log new PTW" button
+- Registry list has a Revalidate button on live and expired permits; it opens the Revalidation form with the PTW number and applicant company already filled
 ## Code.gs v1.5
 - Day 1 extension can no longer be more than 4 hours after the Day 1 end time: submission and admin edits are refused (previously only flagged)
 - Version line moved to line 1 of Code.gs
