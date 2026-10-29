@@ -1,4 +1,7 @@
 # Changelog
+## Code.gs v1.5
+- Day 1 extension can no longer be more than 4 hours after the Day 1 end time: submission and admin edits are refused (previously only flagged)
+- Version line moved to line 1 of Code.gs
 ## v1.4.1
 - Signatories in order: Job Coordinator, Permit Authoriser, Area Owner (Day 1 form and permit detail view)
 ## v1.4

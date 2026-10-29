@@ -1,3 +1,4 @@
+const VERSION = '1.5'; // Code.gs version – bump on every change
 /**
  * EcoOils Mentari – PTW Registry · Google Apps Script backend  (v1.0)
  *
@@ -9,7 +10,6 @@
  * SETUP: see README.md  (run setup() once, then Deploy > Web app > Execute as: Me, Access: Anyone)
  */
 const TZ = 'Asia/Jakarta';
-const VERSION = '1.2';
 const CONTRACTORS = ['GSB', 'WEN', 'KKS', 'PBS'];
 const RAM = ['Low-Low', 'Low', 'Medium', 'High'];
 const SEGMENTS = ['Day', 'Extended', 'Night'];
@@ -160,7 +160,14 @@ const dayDiff_ = (a, b) => Math.round((dayMs_(b) - dayMs_(a)) / 86400000);
 const addDays_ = (s, n) => new Date(dayMs_(s) + n * 86400000).toISOString().slice(0, 10);
 const toMin_ = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
 const span_ = (a, b) => { const d = toMin_(b) - toMin_(a); return d >= 0 ? d : d + 1440; };
-const uniq_ = a => a.filter((x, i) => a.indexOf(x) === i);
+
+/** Day 1 extension must end no more than 4 hours after the Day 1 end time. Returns [en, id] or null. */
+function day1ExtError_(r) {
+  if (!isTime_(r.day1ExtEnd)) return null;
+  if (!isTime_(r.day1End)) return ['Enter the Day 1 end time before a Day 1 extension', 'Isi jam selesai hari 1 sebelum perpanjangan hari 1'];
+  if (span_(r.day1End, r.day1ExtEnd) > 240) return ['Day 1 extension cannot be more than 4 hours after the Day 1 end time', 'Perpanjangan hari 1 tidak boleh lebih dari 4 jam setelah jam selesai hari 1'];
+  return null;
+}const uniq_ = a => a.filter((x, i) => a.indexOf(x) === i);
 
 function listOptions_(k) {
   if (k === 'contractor') return CONTRACTORS;
@@ -395,6 +402,7 @@ function processBatch_(auth, batch, dryRun) {
       o.contractor = resolveContractor_(auth, raw, 'PTW', row, errors);
       pc.forEach(c => { if (c.k === 'contractor') return; const m = checkVal_(c, o[c.k]); if (m) errors.push(er_('PTW', row, m[0], m[1])); });
       if (isDate_(o.validFrom) && isDate_(o.validTo) && o.validTo < o.validFrom) errors.push(er_('PTW', row, 'Valid-to is before valid-from', 'Berlaku-sampai sebelum berlaku-dari'));
+      { const xe = day1ExtError_(o); if (xe) errors.push(er_('PTW', row, xe[0], xe[1])); }
       if (o.doc_jha !== 'Y' || o.doc_wms !== 'Y') errors.push(er_('PTW', row, 'JHA and Work Method Statement are mandatory – both must be ticked on every PTW', 'JHA dan Pernyataan Metode Kerja wajib – keduanya harus dicentang pada setiap PTW'));
       if (!WORK_TYPES.some(w => o['wt_' + w[0]] === 'Y')) errors.push(er_('PTW', row, 'Tick at least one type of work', 'Centang minimal satu jenis pekerjaan'));
       if (o.wt_other === 'Y' && !o.wtOtherText) errors.push(er_('PTW', row, '"Other" work type needs a description', 'Jenis pekerjaan "Lainnya" perlu dijelaskan'));
@@ -509,6 +517,10 @@ function applyEdit_(auth, type, contractor, ptwNo, day, segment, field, newValue
   const v = normVal_(col, newValue);
   const nv = field === 'ptwNo' ? v.toUpperCase() : v;
   const old = f.rec[field];
+  if (type === 'PTW' && (field === 'day1ExtEnd' || field === 'day1End')) {
+    const xe = day1ExtError_(Object.assign({}, f.rec, { [field]: nv }));
+    if (xe) throw new Error(xe[0]);
+  }
   const st = getSettings_();
   if (type === 'PTW' && field === 'ptwNo') {
     const dup = readAll_('PTW').rows.filter(r => r.voided !== 'Y' && r.contractor === contractor && r.ptwNo === nv)[0];
