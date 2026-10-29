@@ -14,7 +14,7 @@ setTimeout(async()=>{
  T('role chip + logout inside titlebar',!!root.querySelector('.titlebar .chip')&&[...root.querySelectorAll('.titlebar button')].some(b=>b.textContent==='Log out'));
  T('header has no chip/logout',!root.querySelector('header.eh .chip')&&![...root.querySelectorAll('header.eh button')].some(b=>b.textContent==='Log out'));
  T('version above toggle',root.querySelector('header.eh .eh-r').children[0].id==='appver'&&root.querySelector('header.eh .eh-r').children[1].classList.contains('eh-l'));
- T('v1.4.2 shown',d.getElementById('appver').textContent==='v1.4.2');
+ T('v1.4.3 shown',d.getElementById('appver').textContent==='v1.4.3');
  T('single title block',root.querySelectorAll('.brand').length===1);
  T('tabs present',root.querySelectorAll('nav.tabs button').length>=3);
  T('no stray null',!/\bnull\b/.test(root.textContent));
@@ -22,4 +22,13 @@ setTimeout(async()=>{
  T('old Day 1 label gone',![...root.querySelectorAll('nav.tabs button')].some(b=>/Day 1/.test(b.textContent)));
  const rb=root.querySelector('.revalbtn');T('Revalidate button in registry',!!rb);
  if(rb){rb.click();await new Promise(r=>setTimeout(r,100));T('opens revalidation tab prefilled',w.eval('S.tab')==='reval'&&w.eval('S.draft.reval.ptwNo')==='7001'&&w.eval('S.draft.reval.contractor')==='GSB');}
+
+ w.eval("S.tab='ptw';render()");await new Promise(r=>setTimeout(r,100));
+ const asel=[...d.querySelectorAll('.applicant select')][0];T('applicant dropdown shown',!!asel);
+ const labels=asel?[...asel.options].map(o=>o.textContent):[];
+ T('has EcoOils Project/Operations/Other',labels.includes('EcoOils (Project)')&&labels.includes('EcoOils (Operations)')&&labels.some(x=>/^Other/.test(x)));
+ const nm=d.querySelector('.applicant input');T('company name box hidden at first',nm&&nm.hidden===true);
+ asel.value='ECOOILS (PROJECT)';asel.dispatchEvent(new w.Event('change'));T('picks EcoOils (Project)',w.eval('S.draft.ptw.contractor')==='ECOOILS (PROJECT)'&&nm.hidden===true);
+ asel.value='__other';asel.dispatchEvent(new w.Event('change'));T('Other shows blank name box',nm.hidden===false&&w.eval('S.draft.ptw.contractor')==='');
+ nm.value='abc Engineering';nm.dispatchEvent(new w.Event('input'));T('typed name stored',w.eval('S.draft.ptw.contractor')==='OTHER: ABC ENGINEERING');
  console.log('ui2',ok,'passed',bad,'failed');process.exit(bad?1:0)},500);

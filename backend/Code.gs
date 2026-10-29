@@ -1,4 +1,4 @@
-const VERSION = '1.5'; // Code.gs version – bump on every change
+const VERSION = '1.6'; // Code.gs version – bump on every change
 /**
  * EcoOils Mentari – PTW Registry · Google Apps Script backend  (v1.0)
  *
@@ -10,7 +10,19 @@ const VERSION = '1.5'; // Code.gs version – bump on every change
  * SETUP: see README.md  (run setup() once, then Deploy > Web app > Execute as: Me, Access: Anyone)
  */
 const TZ = 'Asia/Jakarta';
-const CONTRACTORS = ['GSB', 'WEN', 'KKS', 'PBS'];
+const CONTRACTORS = ['GSB', 'WEN', 'KKS', 'PBS'];   // have their own access codes
+const APPLICANTS_FIXED = ['ECOOILS (PROJECT)', 'ECOOILS (OPERATIONS)'];   // entered by Admin / Entry team only
+const OTHER_PREFIX = 'OTHER: ';   // any other company is stored as  OTHER: <COMPANY NAME>
+/** Upper-cases, trims, and turns "other - abc" / "Other: abc" into the canonical  OTHER: ABC. */
+function normApplicant_(v) {
+  v = String(v === undefined || v === null ? '' : v).trim().replace(/\s+/g, ' ').toUpperCase();
+  const m = /^OTHER\s*[:\-–]\s*(.+)$/.exec(v);
+  return m ? OTHER_PREFIX + m[1].trim() : v;
+}
+function isApplicant_(c) {
+  return CONTRACTORS.indexOf(c) >= 0 || APPLICANTS_FIXED.indexOf(c) >= 0 ||
+    (c.indexOf(OTHER_PREFIX) === 0 && c.length >= OTHER_PREFIX.length + 2 && c.length <= 60);
+}
 const RAM = ['Low-Low', 'Low', 'Medium', 'High'];
 const SEGMENTS = ['Day', 'Extended', 'Night'];
 const OUTCOMES = ['Completed', 'Suspended'];
@@ -167,7 +179,8 @@ function day1ExtError_(r) {
   if (!isTime_(r.day1End)) return ['Enter the Day 1 end time before a Day 1 extension', 'Isi jam selesai hari 1 sebelum perpanjangan hari 1'];
   if (span_(r.day1End, r.day1ExtEnd) > 240) return ['Day 1 extension cannot be more than 4 hours after the Day 1 end time', 'Perpanjangan hari 1 tidak boleh lebih dari 4 jam setelah jam selesai hari 1'];
   return null;
-}const uniq_ = a => a.filter((x, i) => a.indexOf(x) === i);
+}
+const uniq_ = a => a.filter((x, i) => a.indexOf(x) === i);
 
 function listOptions_(k) {
   if (k === 'contractor') return CONTRACTORS;
@@ -361,12 +374,12 @@ function authenticate_(code) {
 function er_(sheet, row, en, id) { return { sheet: sheet, row: row, en: en, id: id }; }
 
 function resolveContractor_(auth, raw, sheetName, row, errors) {
-  const given = str_(raw.contractor).toUpperCase();
+  const given = normApplicant_(raw.contractor);
   if (auth.role === 'contractor') {
     if (given && given !== auth.contractor) { errors.push(er_(sheetName, row, 'This file/row belongs to ' + given + ' but you are logged in as ' + auth.contractor, 'File/baris ini milik ' + given + ' tetapi Anda masuk sebagai ' + auth.contractor)); return ''; }
     return auth.contractor;
   }
-  if (CONTRACTORS.indexOf(given) < 0) { errors.push(er_(sheetName, row, 'Applicant company must be one of ' + CONTRACTORS.join(', '), 'Perusahaan pemohon harus salah satu dari ' + CONTRACTORS.join(', '))); return ''; }
+  if (!isApplicant_(given)) { errors.push(er_(sheetName, row, 'Applicant company must be one of ' + CONTRACTORS.concat(['EcoOils (Project)', 'EcoOils (Operations)']).join(', ') + ', or "Other" with the company name', 'Perusahaan pemohon harus salah satu dari ' + CONTRACTORS.concat(['EcoOils (Project)', 'EcoOils (Operations)']).join(', ') + ', atau "Lainnya" dengan nama perusahaan')); return ''; }
   return given;
 }
 
@@ -545,8 +558,8 @@ function applyEdit_(auth, type, contractor, ptwNo, day, segment, field, newValue
 function requestCorrection_(auth, p) {
   const type = str_(p.recordType).toUpperCase();
   if (['PTW', 'REVAL', 'CLOSE'].indexOf(type) < 0) throw new Error('Choose what you want to correct');
-  const contractor = auth.role === 'contractor' ? auth.contractor : str_(p.contractor).toUpperCase();
-  if (CONTRACTORS.indexOf(contractor) < 0) throw new Error('Contractor missing');
+  const contractor = auth.role === 'contractor' ? auth.contractor : normApplicant_(p.contractor);
+  if (!isApplicant_(contractor)) throw new Error('Applicant company missing');
   if (str_(p.reason).length < 5) throw new Error('Please give a reason (at least 5 characters)');
   const f = findRecord_(type, contractor, p.ptwNo, p.day, p.segment);
   if (!f) throw new Error('No matching record found for ' + contractor + ' ' + str_(p.ptwNo).toUpperCase() + (type === 'REVAL' ? ' Day ' + p.day + ' ' + p.segment : '') + (type === 'CLOSE' ? ' (closure)' : ''));
@@ -587,7 +600,7 @@ function voidRecord_(auth, p) {
   const type = str_(p.recordType).toUpperCase();
   const lock = LockService.getScriptLock(); lock.waitLock(25000);
   try {
-    const f = findRecord_(type === 'REVAL' ? 'REVAL' : 'PTW', str_(p.contractor).toUpperCase(), p.ptwNo, p.day, p.segment);
+    const f = findRecord_(type === 'REVAL' ? 'REVAL' : 'PTW', normApplicant_(p.contractor), p.ptwNo, p.day, p.segment);
     if (!f) throw new Error('Record not found');
     setCell_(f.sheetName, f.rec._row, f.headers, 'voided', 'Y');
     log_(auth, 'void', type + ' ' + p.contractor + ' ' + str_(p.ptwNo).toUpperCase() + (type === 'REVAL' ? ' D' + p.day + ' ' + p.segment : '') + ' – ' + str_(p.reason));
@@ -613,7 +626,7 @@ function purgeTest_(auth, p) {
 function schema_() {
   const flags = {}; Object.keys(FLAGS).forEach(k => { flags[k] = { en: FLAGS[k][0], id: FLAGS[k][1], sev: FLAGS[k][2] }; });
   return {
-    version: VERSION, contractors: CONTRACTORS, ram: RAM, segments: SEGMENTS, outcomes: OUTCOMES, workTypes: WORK_TYPES, docs: DOCS, docRequired: DOC_REQUIRED,
+    version: VERSION, contractors: CONTRACTORS, applicants: CONTRACTORS.concat(APPLICANTS_FIXED), ram: RAM, segments: SEGMENTS, outcomes: OUTCOMES, workTypes: WORK_TYPES, docs: DOCS, docRequired: DOC_REQUIRED,
     ptw: ptwCols_(), reval: revalCols_(), close: closeCols_(), flags: flags,
     editable: { PTW: editable_('PTW'), REVAL: editable_('REVAL'), CLOSE: editable_('CLOSE') }, maxRows: MAX_ROWS_PER_BATCH
   };
@@ -648,7 +661,7 @@ function doPost(e) {
         if (str_(p.reason).length < 5) throw new Error('Reason required (min 5 characters)');
         const lock = LockService.getScriptLock(); lock.waitLock(25000);
         try {
-          const r = applyEdit_(auth, type, str_(p.contractor).toUpperCase(), p.ptwNo, p.day, p.segment, str_(p.field), p.newValue);
+          const r = applyEdit_(auth, type, normApplicant_(p.contractor), p.ptwNo, p.day, p.segment, str_(p.field), p.newValue);
           log_(auth, 'admin-edit', type + ' ' + p.contractor + ' ' + str_(p.ptwNo).toUpperCase() + ' ' + p.field + ': ' + r.old + ' -> ' + r.now + ' – ' + str_(p.reason));
           return json_({ ok: true, result: r });
         } finally { lock.releaseLock(); }

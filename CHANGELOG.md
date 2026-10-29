@@ -1,4 +1,8 @@
 # Changelog
+## Code.gs v1.6 / page v1.4.3
+- Applicant company (Admin and Entry team): GSB, WEN, KKS, PBS, EcoOils (Project), EcoOils (Operations), or Other with a blank box for the company name (stored as OTHER: <NAME>)
+- Contractors logged in with their own code stay locked to their own company
+- ENTRY Excel template lists the two EcoOils options and accepts "Other: <company name>"
 ## v1.4.2 (page)
 - "Day 1 · PTW" tab replaced by a red "+ Log new PTW" button
 - Registry list has a Revalidate button on live and expired permits; it opens the Revalidation form with the PTW number and applicant company already filled
